@@ -30,25 +30,21 @@ public class AccountService {
     }
 
     public Boolean isTestAccount(Account account) {
-        if(account.Name.contains('Test') || account.Name.contains('test')) {
-            return true;
-        } else {
-            return false;
-        }
+        // account.Name.contains('Test') || account.Name.contains('test') = true -> true
+        // account.Name.contains('Test') || account.Name.contains('test') = false -> false
+        return account.Name.contains('Test') || account.Name.contains('test');
     }
 
     public String printAccountTier(Account account) {
-        String tier = '';
+        String tier = 'VIP Tier';
 
         if(account.AnnualRevenue == 0) {
             tier = 'No Tier';
         } else if(account.AnnualRevenue < 50000) {
             tier = 'Silver Tier';
-        } else if(account.AnnualRevenue >= 50000 && account.AnnualRevenue < 300000) {
+        } else if(account.AnnualRevenue < 300000) {
             tier = 'Golden Tier';
-        } else if(account.AnnualRevenue >= 300000) {
-            tier = 'VIP Tier';
-        }
+        } 
 
         System.debug(tier);
         return tier;

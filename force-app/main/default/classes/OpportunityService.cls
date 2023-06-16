@@ -1,11 +1,7 @@
 public with sharing class OpportunityService {
     
     public Boolean isOpen(Opportunity opportunity) {
-        if(opportunity.StageName.contains('Closed')) {
-            return false;
-        } 
-
-        return true;//is this ok or it is clearer to have the else statement?
+        return opportunity.StageName.contains('Closed');
     }
     
     public Decimal calculateAmount(Opportunity firstOpportunity, Opportunity secondOpportunity) {
@@ -53,16 +49,9 @@ public with sharing class OpportunityService {
         return opportunity;
     }
 
-    public Opportunity createNewOpportunity(
-        String name, 
-        String stageName, 
-        Date closeDate, 
-        Decimal amount, 
-        Id accountId
-    ) {
-        Opportunity opportunity = new Opportunity();
-        
-        if(name != null) {
+    /**
+     * 
+     * if(name != null) {
             opportunity.Name = name;
         } else {
             opportunity.Name = 'Default Opportunity';
@@ -78,15 +67,46 @@ public with sharing class OpportunityService {
             opportunity.CloseDate = System.today().addDays(14);
         }
         if(Amount != null) {
-            opportunity.Amount = Amount;
+            opportunity.Amount = amount;
         } else {
             opportunity.Amount = 250000;
         }
         if(AccountId != null) {
-            opportunity.AccountId = AccountId;
+            opportunity.AccountId = accountId;
         } else {
             opportunity.AccountId = '000000000000000000';
         }
+     */
+    public Opportunity createNewOpportunity(
+        String name, 
+        String stageName, 
+        Date closeDate, 
+        Decimal amount, 
+        Id accountId
+    ) {
+        Opportunity opportunity = new Opportunity();
+
+        if(name == null) {
+            name = 'Default Opportunity';
+        }
+
+        if(stageName == null) {
+            stageName = 'Prospecting';
+        }
+
+        if(closeDate == null) {
+            closeDate = System.today().addDays(14);
+        }
+
+        if(amount == null) {
+            amount = 250000;
+        }
+
+        opportunity.Name = name;
+        opportunity.StageName = stageName;
+        opportunity.CloseDate = closeDate;
+        opportunity.Amount = amount;
+        opportunity.AccountId = accountId; 
         
         return opportunity;
     }
