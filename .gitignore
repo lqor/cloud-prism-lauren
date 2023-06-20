@@ -43,3 +43,9 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+force-app/main/default/classes/IfElsePracticeCopy.cls
+force-app/main/default/classes/IfElsePracticeCopy.cls-meta.xml
+force-app/main/default/classes/OpportunityServiceCopy.cls
+force-app/main/default/classes/OpportunityServiceCopy.cls-meta.xml
+force-app/main/default/classes/AccountServiceCopy.cls
+force-app/main/default/classes/AccountServiceCopy.cls-meta.xml
