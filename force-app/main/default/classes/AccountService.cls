@@ -10,6 +10,28 @@ public class AccountService {
         return account;
     }
 
+    // Lists & For Each Loops Exercises
+    //--------------------------------------------------------------------------
+
+    public List<Account> createTwoAccounts() {
+        List<Account> twoAccounts = new List<Account>();
+        Account firstAccount = new Account();
+        Account secondAccount = new Account();
+
+        firstAccount.Name = 'Tokyo Disneyland';
+        firstAccount.Industry = 'Entertainment';
+        firstAccount.BillingCity = 'Tokyo';
+
+        secondAccount.Name = 'Universal Studios Japan';
+        secondAccount.Industry = 'Entertainment';
+        secondAccount.BillingCity = 'Osaka';
+
+        twoAccounts.add(firstAccount);
+        twoAccounts.add(secondAccount);
+
+        return twoAccounts;
+    }
+
     public Account createNewAccount(String name, String type, String accountNumber) {
         Account account = new Account();
 
@@ -56,6 +78,10 @@ public class AccountService {
     
     public void insertAccount(Account account) {
         insert account;
+    }
+
+    public void insertAccounts(List<Account> accounts) {
+        insert accounts;
     }
     
 }

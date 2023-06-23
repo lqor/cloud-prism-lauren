@@ -112,7 +112,7 @@ public with sharing class Loops {
 		
         if(n >= 0) {
             for(Integer i = n-2; i >= 0; i -= 2) {
-                positiveEvenNumbers += (', ' + i);
+            positiveEvenNumbers += (', ' + i);
             }
             System.debug(positiveEvenNumbers);        
         }
@@ -154,6 +154,7 @@ public with sharing class Loops {
     }
     
     public Boolean isPalindrome(String word) {
+        
         return (word.equalsIgnoreCase(reverseString(word)));
     }
     

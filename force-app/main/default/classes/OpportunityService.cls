@@ -1,11 +1,7 @@
 public with sharing class OpportunityService {
     
     public Boolean isOpen(Opportunity opportunity) {
-        if(opportunity.StageName.contains('Closed')) {
-            return false;
-        } 
-
-        return true;//is this ok or it is clearer to have the else statement?
+        return !opportunity.StageName.contains('Closed');
     }
     
     public Decimal calculateAmount(Opportunity firstOpportunity, Opportunity secondOpportunity) {
@@ -53,41 +49,31 @@ public with sharing class OpportunityService {
         return opportunity;
     }
 
-    public Opportunity createNewOpportunity(
-        String name, 
-        String stageName, 
-        Date closeDate, 
-        Decimal amount, 
-        Id accountId
-    ) {
+    public Opportunity createNewOpportunity(String name, String stageName, Date closeDate, Decimal amount, Id accountId) {
         Opportunity opportunity = new Opportunity();
         
-        if(name != null) {
-            opportunity.Name = name;
-        } else {
-            opportunity.Name = 'Default Opportunity';
+        if(name == null) {
+            name = 'Default Opportunity';
         }
-        if(StageName != null) {
-            opportunity.StageName = stageName;
-        } else {
-            opportunity.StageName = 'Prospecting';
+
+        if(stageName == null) {
+            stageName = 'Prospecting';
         }
-        if(CloseDate != null) {
-            opportunity.CloseDate = CloseDate;
-        } else {
-            opportunity.CloseDate = System.today().addDays(14);
+
+        if(closeDate == null) {
+            closeDate = System.today().addDays(14);
         }
-        if(Amount != null) {
-            opportunity.Amount = Amount;
-        } else {
-            opportunity.Amount = 250000;
+
+        if(amount == null) {
+            amount = 250000;
         }
-        if(AccountId != null) {
-            opportunity.AccountId = AccountId;
-        } else {
-            opportunity.AccountId = '000000000000000000';
-        }
-        
+
+        opportunity.Name = name;
+        opportunity.StageName = stageName;
+        opportunity.CloseDate = CloseDate;
+        opportunity.Amount = Amount;
+        opportunity.AccountId = AccountId;
+
         return opportunity;
     }
 
@@ -102,6 +88,76 @@ public with sharing class OpportunityService {
         opportunity.StageName = 'Needs Analysis';
         
         return opportunity;
+    }
+
+    // Lists & For Each Loops Exercises
+    //--------------------------------------------------------------------------
+
+    public List<Opportunity> createOpportunities(Integer n) {
+        ListsPractice listsPractice = new ListsPractice();
+        List<Opportunity> opportunities = new List<Opportunity>();
+        Opportunity opportunity = new Opportunity();
+
+         for(Integer i = 0; i < n; i++) {
+            opportunity = createNewOpportunity();
+            opportunity.Amount = listsPractice.getRandomNumberInRange(1000, 300000);
+            opportunity.StageName = getRandomStageName();
+            opportunities.add(opportunity);
+        }
+
+        return opportunities;
+    }
+
+    public List<Opportunity> filterOpportunitiesByStage(List<Opportunity> opportunities, String stageName) {
+        List<Opportunity> filteredOpportunities = new List<Opportunity>();
+
+        for(Opportunity opportunity : opportunities) {
+            if(opportunity.StageName == stageName) {
+                filteredOpportunities.add(opportunity);
+            }
+        }
+
+        return filteredOpportunities;
+    }
+
+    public List<Opportunity> filterClosedWonOpportunities(List<Opportunity> opportunities) {
+        List<Opportunity> closedWonOpportunities = new List<Opportunity>();
+
+        for(Opportunity opportunity : opportunities) {
+            if(opportunity.StageName == 'Closed Won') {
+                closedWonOpportunities.add(opportunity);
+            }
+        }
+
+        return closedWonOpportunities;
+    }
+
+    public Double calculateTotalRevenue(List<Opportunity> opportunities) {
+        Double totalRevenue = 0.0;
+
+        for(Opportunity opportunity : opportunities) {
+            totalRevenue += opportunity.Amount;
+        }
+
+        return totalRevenue;
+    }
+
+    public String getRandomStageName() {
+        ListsPractice listsPractice = new ListsPractice();
+        List<String> stageNames = new List<String>();
+
+        stageNames.add('Prospecting');
+        stageNames.add('Qualification');
+        stageNames.add('Needs Analysis');
+        stageNames.add('Value Proposition');
+        stageNames.add('Id. Decision Makers');
+        stageNames.add('Perception Analysis');
+        stageNames.add('Proposal/Price Quote');
+        stageNames.add('Negotiation/Review');
+        stageNames.add('Closed Won');
+        stageNames.add('Closed Lost');
+
+        return listsPractice.getRandomStringFromList(stageNames);
     }
 
     public void insertOpportunity(Opportunity opportunity) {
