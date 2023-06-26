@@ -40,18 +40,11 @@ public with sharing class OpportunityQueries {
         ];
     }
 
-    public static void changeProbablityBasedOnAmount(Integer amount) {
-        List<Opportunity> opportunities = [
+    public static List<Opportunity> queryOpportunityByAmount(Integer amount) {
+        return [
             SELECT Id, Name, Amount, StageName, CloseDate, Probability
             FROM Opportunity 
             WHERE Amount < :amount 
         ];
-
-        for(Opportunity opportunity : opportunities) {
-            opportunity.Probability *= 0.5;
-        }
-
-        update opportunities;
-    }    
-
+    }
 }

@@ -163,5 +163,14 @@ public with sharing class OpportunityService {
     public void insertOpportunity(Opportunity opportunity) {
         insert opportunity;
     }
-    
+
+    public void changeProbablityBasedOnAmount(Integer amount) {
+        List<Opportunity> opportunities = OpportunityQueries.queryOpportunityByAmount(amount);
+
+        for(Opportunity opportunity : opportunities) {
+            opportunity.Probability *= 0.5;
+        }
+
+        update opportunities;
+    }   
 }
