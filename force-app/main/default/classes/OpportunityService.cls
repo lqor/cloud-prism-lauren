@@ -184,7 +184,7 @@ public with sharing class OpportunityService {
     }
 
     public void changeProbablityBasedOnAmount(Integer amount) {
-        List<Opportunity> opportunities = OpportunityQueries.queryOpportunitiesByAmount(amount);
+        List<Opportunity> opportunities = OpportunityQueries.queryOpportunityByAmount(amount);
 
         for(Opportunity opportunity : opportunities) {
             opportunity.Probability *= 0.5;
