@@ -96,10 +96,10 @@ public with sharing class OpportunityService {
     public List<Opportunity> createOpportunities(Integer n) {
         ListsPractice listsPractice = new ListsPractice();
         List<Opportunity> opportunities = new List<Opportunity>();
-        Opportunity opportunity = new Opportunity();
+        
 
          for(Integer i = 0; i < n; i++) {
-            opportunity = createNewOpportunity();
+            Opportunity opportunity = createNewOpportunity();
             opportunity.Amount = listsPractice.getRandomNumberInRange(1000, 300000);
             opportunity.StageName = getRandomStageName();
             opportunities.add(opportunity);
@@ -163,5 +163,14 @@ public with sharing class OpportunityService {
     public void insertOpportunity(Opportunity opportunity) {
         insert opportunity;
     }
-    
+
+    public void changeProbablityBasedOnAmount(Integer amount) {
+        List<Opportunity> opportunities = OpportunityQueries.queryOpportunityByAmount(amount);
+
+        for(Opportunity opportunity : opportunities) {
+            opportunity.Probability *= 0.5;
+        }
+
+        update opportunities;
+    }   
 }

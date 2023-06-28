@@ -1,0 +1,44 @@
+// Use .soql files to store SOQL queries.
+// You can execute queries in VS Code by selecting the
+//     query text and running the command:
+//     SFDX: Execute SOQL Query with Currently Selected Text
+
+SELECT Id, Name, Amount, Account.Name, AccountId
+FROM Opportunity
+WHERE Amount > 50000 AND AccountId != null
+
+SELECT Name, StageName, Account.Name, AccountId
+FROM Opportunity
+WHERE StageName = 'Closed Won' AND AccountId != null
+
+SELECT Owner.Name, COUNT_DISTINCT(OwnerId)
+FROM Opportunity
+GROUP BY Owner.Name
+
+SELECT MAX(Amount) 
+FROM Opportunity
+
+SELECT StageName, AVG(Amount)
+FROM Opportunity
+WHERE StageName = 'Closed Won'
+GROUP BY StageName
+
+SELECT COUNT(Id)
+FROM Opportunity
+WHERE CloseDate > TODAY
+
+SELECT Name, StageName, CreatedDate
+FROM Opportunity
+WHERE CreatedDate = LAST_N_DAYS:30
+
+SELECT Account.Name, SUM(Amount)
+FROM Opportunity
+GROUP BY Account.Name
+
+SELECT COUNT(Id)
+FROM Opportunity
+WHERE CloseDate = LAST_N_DAYS:7
+
+SELECT Name, StageName, Amount, CloseDate
+FROM Opportunity
+WHERE Amount > 10000 AND CloseDate > TODAY
