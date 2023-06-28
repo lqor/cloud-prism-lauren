@@ -109,6 +109,7 @@ public with sharing class OpportunityService {
         ListsPractice listsPractice = new ListsPractice();
         List<Opportunity> opportunities = new List<Opportunity>();
         
+
          for(Integer i = 0; i < n; i++) {
             Opportunity opportunity = createNewOpportunity();
             opportunity.Amount = listsPractice.getRandomNumberInRange(1000, 300000);
@@ -184,7 +185,7 @@ public with sharing class OpportunityService {
     }
 
     public void changeProbablityBasedOnAmount(Integer amount) {
-        List<Opportunity> opportunities = OpportunityQueries.queryOpportunityByAmount(amount);
+        List<Opportunity> opportunities = OpportunityQueries.queryOpportunitiesByAmount(amount);
 
         for(Opportunity opportunity : opportunities) {
             opportunity.Probability *= 0.5;

@@ -27,7 +27,7 @@ public with sharing class OpportunityQueries {
         return [SELECT Id, Name, Amount, StageName, CloseDate  FROM Opportunity WHERE CloseDate = :closeDate];
     }
 
-    public static List<Opportunity> queryOpportunityByAmount(Integer amount) {
+    public static List<Opportunity> queryOpportunitiesByCloseDateAndNotClosedLost(Date pastDate) {
         return [
             SELECT Id, Name, Amount, StageName, CloseDate, Probability
             FROM Opportunity 
