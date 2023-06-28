@@ -23,6 +23,14 @@ public with sharing class ContactService {
         return twoContacts;
     }
 
+    public void insertContact(Contact contact) {
+        insert contact;
+    }
+
+    public void insertContacts(List<Contact> contacts) {
+        insert contacts;
+    }
+
     public List<Contact> insertTwoContactsWithAccounts() {
         AccountService accountService = new AccountService();
         List<Account> twoAccounts = accountService.createTwoAccounts();
@@ -34,12 +42,18 @@ public with sharing class ContactService {
         return twoContacts;
     }
 
-    public void insertContact(Contact contact) {
-        insert contact;
+    public void updateContacts(List<Contact> contacts) {
+        update contacts;
     }
 
-    public void insertContacts(List<Contact> contacts) {
-        insert contacts;
+    public void updateContactsPhoneByAccount(Id accountId, String phoneNumber) {
+        List<Contact> contacts = ContactQueries.queryContactsByAccountId(accountId);
+
+        for(Contact contact : contacts) {
+            contact.Phone = phoneNumber;
+        }
+
+        updateContacts(contacts);
     }
 
 }
