@@ -17,18 +17,41 @@ public with sharing class OpportunityService {
     }
     
     public Decimal calculateAmount(Opportunity firstOpportunity, Opportunity secondOpportunity) {
+        if(firstOpportunity == null || 
+            secondOpportunity == null || 
+            firstOpportunity.Amount == null || 
+            secondOpportunity.Amount == null
+        ) {
+            return 0.0;
+        }
+
         return firstOpportunity.Amount + secondOpportunity.Amount;
     }
 
     public Decimal calculateProbability(Opportunity firstOpportunity, Opportunity secondOpportunity) {
-        return (firstOpportunity.Probability + secondOpportunity.Probability) / 2;
+        if(firstOpportunity == null || 
+            secondOpportunity == null ||
+            firstOpportunity.Probability == null || 
+            secondOpportunity.Probability == null
+        ) {
+            return 0.0;
+        }
+
+        return (firstOpportunity.Probability + secondOpportunity.Probability) / 2.0;
     }
     
     public void doubleAmount(Opportunity opportunity) {
+        if(opportunity == null || opportunity.Amount == null) {
+            return;
+        }
         opportunity.Amount *= 2;
     }
     
     public String getOpportunityDetails(Opportunity opportunity) {
+        if(opportunity == null) {
+            return '';
+        }
+
         String name = 'The opportunity name is: ' + opportunity.Name;
         String amount = '. The opportunity amount is: ' + opportunity.Amount;
         String stage = '. The opportunity stage is: ' + opportunity.StageName + '.';
@@ -108,7 +131,6 @@ public with sharing class OpportunityService {
     public List<Opportunity> createOpportunities(Integer n) {
         ListsPractice listsPractice = new ListsPractice();
         List<Opportunity> opportunities = new List<Opportunity>();
-        
 
          for(Integer i = 0; i < n; i++) {
             Opportunity opportunity = createNewOpportunity();
@@ -172,18 +194,6 @@ public with sharing class OpportunityService {
         return listsPractice.getRandomStringFromList(stageNames);
     }
 
-    public void insertOpportunity(Opportunity opportunity) {
-        insert opportunity;
-    }
-
-    public void insertOpportunities(List<Opportunity> opportunities) {
-        insert opportunities;
-    }
-
-    public void updateOpportunities(List<Opportunity> opportunities) {
-        update opportunities;
-    }
-
     public void changeProbablityBasedOnAmount(Integer amount) {
         List<Opportunity> opportunities = OpportunityQueries.queryOpportunitiesByAmount(amount);
 
@@ -219,7 +229,7 @@ public with sharing class OpportunityService {
         List<Opportunity> opportunities = new List<Opportunity>();
         
         for(Id accountId : accountIds) {
-            opportunities.addAll(OpportunityQueries.queryOpportunitiesByAccountId(accountId));
+            opportunities.addAll(OpportunityQueries.queryOpportunitiesByAccountId(accountIds));
         }
 
         for(Opportunity opportunity : opportunities) {
@@ -229,4 +239,26 @@ public with sharing class OpportunityService {
         updateOpportunities(opportunities);
     }
     
+    public void insertOpportunity(Opportunity opportunity) {
+        if(opportunity.Name != null && opportunity.StageName != null && opportunity.CloseDate != null) {
+            insert opportunity;
+        }
+    }
+
+    public void insertOpportunities(List<Opportunity> opportunities) {
+        List<Opportunity> opportunitiesToInsert = new List<Opportunity>(); 
+        for(Opportunity opportunity : opportunities) {
+            if(opportunity.Name != null && opportunity.StageName != null && opportunity.CloseDate != null) {
+                opportunitiesToInsert.add(opportunity);
+            }
+        }
+        insert opportunitiesToInsert;
+    }
+
+    public void updateOpportunities(List<Opportunity> opportunities) {
+        if(opportunities != null && !opportunities.isEmpty()){
+            update opportunities;
+        }
+    }
+
 }
