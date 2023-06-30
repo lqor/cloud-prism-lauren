@@ -31,12 +31,12 @@ public with sharing class OpportunityQueries {
         return [
             SELECT Id, Name, Amount, StageName, CloseDate, Probability
             FROM Opportunity 
-            WHERE CloseDate < :pastDate AND StageName != :CLOSED_LOST_OPP_STAGE
+            WHERE CloseDate > :pastDate AND StageName != :CLOSED_LOST_OPP_STAGE
         ];
     }
 
-    public static List<Opportunity> queryOpportunitiesByAccountId(Id accountId) {
-        return [SELECT AccountId, CloseDate FROM Opportunity WHERE AccountId = :accountId];
+    public static List<Opportunity> queryOpportunitiesByAccountId(List<Id> accountIds) {
+        return [SELECT AccountId, CloseDate FROM Opportunity WHERE AccountId IN :accountIds];
     }
 
 }
