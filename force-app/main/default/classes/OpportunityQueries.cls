@@ -2,7 +2,6 @@ public with sharing class OpportunityQueries {
 
     public static final String CLOSED_LOST_OPP_STAGE = 'Closed Lost';
 
-
     public static List<Opportunity> queryOpportunitiesByStage(String stage) {
         return [SELECT Id, Name, StageName, CloseDate FROM Opportunity WHERE StageName = :stage];
     }
