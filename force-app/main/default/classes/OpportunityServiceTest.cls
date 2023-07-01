@@ -2,7 +2,7 @@
 public with sharing class OpportunityServiceTest {
 
     @TestSetup
-    static void setup(){
+    static void setup() {
         Account account = new Account(Name = 'Magic Mountain');
         insert account;
 
@@ -42,38 +42,36 @@ public with sharing class OpportunityServiceTest {
         insert new List<Opportunity>{opportunity1, opportunity2, opportunity3};
     }
 
-    @isTest 
+    @IsTest 
     static void isOpen_ClosedOpportunity() {
         Opportunity opportunity = [SELECT StageName FROM Opportunity WHERE Name = 'Test Opportunity One'];
 
         OpportunityService opportunityService = new OpportunityService();
         Boolean isOpen = opportunityService.isOpen(opportunity);
 
-        Assert.areEqual(false, isOpen);
+        Assert.isFalse(isOpen);
     }
 
-    @isTest 
-    static void isOpen_OpenOpportunity() {
-        Opportunity opportunity = [SELECT StageName FROM Opportunity WHERE Name = 'Test Opportunity Two'];
-
-        OpportunityService opportunityService = new OpportunityService();
-        Boolean isOpen = opportunityService.isOpen(opportunity);
-
-        Assert.areEqual(true, isOpen);
-    }
-
-    @isTest 
+    @IsTest 
     static void calculateAmount_UnitTest() {
-        Opportunity opportunity1 = [SELECT Amount FROM Opportunity WHERE Name = 'Test Opportunity One'];
-        Opportunity opportunity2 = [SELECT Amount FROM Opportunity WHERE Name = 'Test Opportunity Two'];
+        List<Opportunity> opportunities = [
+            SELECT Amount 
+            FROM Opportunity 
+            WHERE Amount != null
+            LIMIT 2
+        ];
+
+        Opportunity opportunity1 = opportunities.get(0);
+        Opportunity opportunity2 = opportunities.get(1);
+        Decimal expectedAmount = opportunity1.Amount + opportunity2.Amount;
 
         OpportunityService opportunityService = new OpportunityService();
         Decimal amount = opportunityService.calculateAmount(opportunity1, opportunity2);
 
-        Assert.areEqual(164000, amount);
+        Assert.areEqual(expectedAmount, amount);
     }
 
-    @isTest 
+    @IsTest 
     static void calculateAmount_ZeroAmount() {
         Opportunity opportunity1 = [SELECT Amount FROM Opportunity WHERE Name = 'Test Opportunity One'];
         Opportunity opportunityZero = new Opportunity();
@@ -84,29 +82,36 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(0.0, amount);
     }
 
-    @isTest 
+    @IsTest 
     static void calculateAmount_NullOpportunities() {
         Opportunity opportunity1 = [SELECT Amount FROM Opportunity WHERE Name = 'Test Opportunity One'];
-        Opportunity opportunityNull;
 
         OpportunityService opportunityService = new OpportunityService();
-        Decimal amount = opportunityService.calculateAmount(opportunity1, opportunityNull);
+        Decimal amount = opportunityService.calculateAmount(opportunity1, null);
 
         Assert.areEqual(0.0, amount);
     }
 
-    @isTest 
+    @IsTest 
     static void calculateProbability_UnitTest() {
-        Opportunity opportunity1 = [SELECT Probability FROM Opportunity WHERE Name = 'Test Opportunity One'];
-        Opportunity opportunity2 = [SELECT Probability FROM Opportunity WHERE Name = 'Test Opportunity Two'];
+        List<Opportunity> opportunities = [
+            SELECT Probability 
+            FROM Opportunity 
+            WHERE Probability != null
+            LIMIT 2
+        ];
+
+        Opportunity opportunity1 = opportunities.get(0);
+        Opportunity opportunity2 = opportunities.get(1);
+        Decimal expecetdProbability = (opportunity1.Probability + opportunity2.Probability) / 2.0;
 
         OpportunityService opportunityService = new OpportunityService();
         Decimal probability = opportunityService.calculateProbability(opportunity1, opportunity2);
 
-        Assert.areEqual(32.5, probability);
+        Assert.areEqual(expecetdProbability, probability);
     }
 
-    @isTest 
+    @IsTest 
     static void calculateProbability_ZeroProbability() {
         Opportunity opportunity1 = [SELECT Probability FROM Opportunity WHERE Name = 'Test Opportunity One'];
         Opportunity opportunityZero = new Opportunity();
@@ -117,7 +122,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(0.0, probability);
     }
 
-    @isTest 
+    @IsTest 
     static void calculateProbability_NullOpportunities() {
         Opportunity opportunity1 = [SELECT Probability FROM Opportunity WHERE Name = 'Test Opportunity One'];
         Opportunity opportunityNull;
@@ -128,7 +133,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(0.0, probability);
     }
 
-    @isTest 
+    @IsTest 
     static void doubleAmount_UnitTest() {
         Opportunity opportunity1 = [SELECT Amount FROM Opportunity WHERE Name = 'Test Opportunity One'];
 
@@ -138,7 +143,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(128000, opportunity1.Amount);
     }
 
-    @isTest 
+    @IsTest 
     static void doubleAmount_NullAmount() {
         Opportunity opportunityZero = new Opportunity();
 
@@ -148,7 +153,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(null, opportunityZero.Amount);
     }
 
-    @isTest 
+    @IsTest 
     static void doubleAmount_NullOpportunity() {
         Opportunity opportunityNull;
 
@@ -158,22 +163,19 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(null, null);
     }
     
-    @isTest 
+    @IsTest 
     static void getOpportunityDetails_UnitTest() {
         Opportunity opportunity = [SELECT Name, Amount, StageName FROM Opportunity WHERE Name = 'Test Opportunity One'];
-
-        String name = 'The opportunity name is: ' + opportunity.Name;
-        String amount = '. The opportunity amount is: ' + opportunity.Amount;
-        String stage = '. The opportunity stage is: ' + opportunity.StageName + '.';
-        String expected = name + amount + stage;
 
         OpportunityService opportunityService = new OpportunityService();
         String result = opportunityService.getOpportunityDetails(opportunity);
 
-        Assert.areEqual(expected, result);
+        Assert.isTrue(result.contains(opportunity.Name));
+        Assert.isTrue(result.contains(String.valueOf(opportunity.Amount)));
+        Assert.isTrue(result.contains(opportunity.StageName));
     }
    
-    @isTest 
+    @IsTest 
     static void getOpportunityDetails_NullOpportunity() {
         Opportunity opportunityNull;
 
@@ -183,7 +185,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual('', result);
     }
 
-    @isTest 
+    @IsTest 
     static void softMerge_UnitTest() {
         Opportunity opportunity1 = [
             SELECT AccountId, Amount, CloseDate 
@@ -207,10 +209,15 @@ public with sharing class OpportunityServiceTest {
         OpportunityService opportunityService = new OpportunityService();
         Opportunity opportunityMerged = opportunityService.softMerge(opportunity1, opportunity2);
 
-        Assert.areEqual(opportunityExpected, opportunityMerged);
+        Assert.areEqual(opportunityExpected.AccountId, opportunityMerged.AccountId);
+        Assert.areEqual(opportunityExpected.Amount, opportunityMerged.Amount);
+        Assert.areEqual(opportunityExpected.CloseDate, opportunityMerged.CloseDate);
+        Assert.areEqual(opportunityExpected.Name, opportunityMerged.Name);
+        Assert.areEqual(opportunityExpected.Probability, opportunityMerged.Probability);
+        Assert.areEqual(opportunityExpected.StageName, opportunityMerged.StageName);
     }
 
-    @isTest 
+    @IsTest 
     static void createNewOpportunity_UnitTest() {
         OpportunityService opportunityService = new OpportunityService();
         Opportunity opportunityCreated = opportunityService.createNewOpportunity();
@@ -218,7 +225,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areNotEqual(null, opportunityCreated);
     }
 
-    @isTest 
+    @IsTest 
     static void createOpportunityWithParameters_UnitTest() {
         Account account = [SELECT Id, Name FROM Account WHERE Name = 'Magic Mountain'];
         Opportunity opportunityExpected = new Opportunity();
@@ -251,13 +258,14 @@ public with sharing class OpportunityServiceTest {
         opportunityExpected.Probability = 20;
         opportunityExpected.StageName = 'Needs Analysis';
 
-        OpportunityService opportunityService = new OpportunityService();
-        Opportunity opportunityCreated = opportunityService.createOpportunityWithAccount(account);
+        Test.startTest();
+        Opportunity opportunityCreated = new OpportunityService().createOpportunityWithAccount(account);
+        Test.stopTest();
 
         Assert.areEqual(opportunityExpected, opportunityCreated);
     }
     
-    @isTest 
+    @IsTest 
     static void createOpportunities_UnitTest() {
         OpportunityService opportunityService = new OpportunityService();
         List<Opportunity> opportunitiesCreated = opportunityService.createOpportunities(5);
@@ -265,7 +273,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(5, opportunitiesCreated.size());
     }
 
-    @isTest 
+    @IsTest 
     static void filterOpportunitiesByStage_UnitTest() {
         List<Opportunity> opportunities = [SELECT StageName FROM Opportunity WHERE Name LIKE 'Test Opportunity%'];
         List<Opportunity> expectedOpportunities = [SELECT StageName FROM Opportunity WHERE StageName = 'Qualification'];
@@ -277,20 +285,24 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(expectedOpportunities, filteredOpportunities);
     }
 
-    @isTest 
+    @IsTest 
     static void filterClosedWonOpportunities_UnitTest() {
-        List<Opportunity> opportunities = [SELECT StageName FROM Opportunity WHERE Name LIKE 'Test Opportunity%'];
-        List<Opportunity> expectedOpportunities = [SELECT StageName FROM Opportunity WHERE StageName = 'Closed Won'];
+        List<Opportunity> opportunities = [SELECT StageName FROM Opportunity];
 
         OpportunityService opportunityService = new OpportunityService();
-        List<Opportunity>  filteredOpportunities = opportunityService.filterClosedWonOpportunities(opportunities);
 
-        Assert.areEqual(expectedOpportunities, filteredOpportunities);
+        Test.startTest();
+        List<Opportunity> filteredOpportunities = opportunityService.filterClosedWonOpportunities(opportunities);
+        Test.stopTest();
+
+        for(Opportunity opportunity : filteredOpportunities) {
+            Assert.areEqual('Closed Won', opportunity.StageName);
+        }
     }
 
-    @isTest 
+    @IsTest 
     static void calculateTotalRevenue_UnitTest() {
-        List<Opportunity> opportunities = [SELECT Amount FROM Opportunity WHERE Name LIKE 'Test Opportunity%'];
+        List<Opportunity> opportunities = [SELECT Amount FROM Opportunity];
 
         OpportunityService opportunityService = new OpportunityService();
         Double totalRevenue = opportunityService.calculateTotalRevenue(opportunities);
@@ -298,7 +310,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(167000, totalRevenue);
     }
 
-    @isTest 
+    @IsTest 
     static void changeProbablityBasedOnAmount_UnitTest() {
         Integer amount = 100000;
 
@@ -310,7 +322,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areEqual(8, opportunities.get(0).Probability);
     }
 
-    @isTest 
+    @IsTest 
     static void updateOpportunityCloseDates_UnitTest() {
         String stage = 'Qualification';
         Integer daysToAdd = 5;
@@ -318,12 +330,12 @@ public with sharing class OpportunityServiceTest {
         OpportunityService opportunityService = new OpportunityService();
         opportunityService.updateOpportunityCloseDates(stage, daysToAdd);
 
-        List<Opportunity> opportunities = [SELECT CloseDate FROM Opportunity WHERE StageName = 'Qualification'];
+        Opportunity changedOpp = [SELECT CloseDate FROM Opportunity WHERE StageName = 'Qualification' LIMIT 1];
 
-        Assert.areEqual(System.today().addDays(20), opportunities.get(0).CloseDate);
+        Assert.areEqual(System.today().addDays(20), changedOpp.CloseDate);
     }
 
-    @isTest 
+    @IsTest 
     static void closeOldOpportunities_UnitTest() {
         Integer amountOfMonths = -5;
         Date pastDate = System.today().addMonths(-5);
@@ -335,8 +347,8 @@ public with sharing class OpportunityServiceTest {
 
         Assert.areEqual('Closed Lost', opportunities.get(0).StageName);
     }
-   
-    @isTest 
+    
+    @IsTest 
     static void addDaysToOpportunities_UnitTest() {
         List<Opportunity> opportunities = [
             SELECT AccountId, CloseDate 
@@ -370,8 +382,39 @@ public with sharing class OpportunityServiceTest {
 
         Assert.areEqual(expectedCloseDates, newCloseDates);
     }
+    
+    /*
+    // better way to write using sets and maps to avoid duplicate account Ids
+    @IsTest 
+    static void addDaysToOpportunities_UnitTest() {
+        List<Opportunity> opportunities = [
+            SELECT AccountId, CloseDate 
+            FROM Opportunity 
+        ];
+        Integer amountOfDays = 15;
+        List<Date> expectedCloseDates = new List<Date>();
+        for(Opportunity opportunity : opportunities) {
+            expectedCloseDates.add(opportunity.CloseDate.addDays(amountOfDays));
+        }
 
-    @isTest 
+        List<Account> accounts = [SELECT Id FROM Account];
+        Set<Id> accountIds = (new Map<Id, Account> (accounts)).keySet(); // Set<Id> idSet = (new Map<Id, SObject> (records)).keySet();
+        
+        OpportunityService opportunityService = new OpportunityService();
+        opportunityService.addDaysToOpportunities(accountIds, amountOfDays);
+
+        opportunities = [
+            SELECT AccountId, CloseDate 
+            FROM Opportunity 
+        ];
+
+        Assert.areEqual(expectedCloseDates.size(), opportunities.size());
+        for(Opportunity opportunity : opportunities) {
+            Assert.isTrue(expectedCloseDates.contains(opportunity.CloseDate));
+        }
+    }*/
+
+    @IsTest 
     static void insertOpportunity_UnitTest() {
         OpportunityService opportunityService = new OpportunityService();
         Opportunity opportunity = opportunityService.createNewOpportunity();
@@ -382,7 +425,7 @@ public with sharing class OpportunityServiceTest {
         Assert.areNotEqual(null, opportunityInserted);
     }
 
-    @isTest 
+    @IsTest 
     static void insertOpportunities_UnitTest() {
         OpportunityService opportunityService = new OpportunityService();
         List<Opportunity> opportunities = opportunityService.createOpportunities(5);

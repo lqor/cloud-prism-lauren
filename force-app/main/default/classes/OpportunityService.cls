@@ -10,14 +10,14 @@ public with sharing class OpportunityService {
     public static final String NEGOTIATION_REVIEW_OPP_STAGE = 'Negotiation/Review';
     public static final String CLOSED_WON_OPP_STAGE = 'Closed Won';
     public static final String CLOSED_LOST_OPP_STAGE = 'Closed Lost';
-
     
     public Boolean isOpen(Opportunity opportunity) {
         return !opportunity.StageName.contains('Closed');
     }
     
     public Decimal calculateAmount(Opportunity firstOpportunity, Opportunity secondOpportunity) {
-        if(firstOpportunity == null || 
+        if(
+            firstOpportunity == null || 
             secondOpportunity == null || 
             firstOpportunity.Amount == null || 
             secondOpportunity.Amount == null
@@ -29,7 +29,8 @@ public with sharing class OpportunityService {
     }
 
     public Decimal calculateProbability(Opportunity firstOpportunity, Opportunity secondOpportunity) {
-        if(firstOpportunity == null || 
+        if(
+            firstOpportunity == null || 
             secondOpportunity == null ||
             firstOpportunity.Probability == null || 
             secondOpportunity.Probability == null
@@ -44,6 +45,7 @@ public with sharing class OpportunityService {
         if(opportunity == null || opportunity.Amount == null) {
             return;
         }
+
         opportunity.Amount *= 2;
     }
     
@@ -226,11 +228,11 @@ public with sharing class OpportunityService {
     }
 
     public void addDaysToOpportunities(List<Id> accountIds, Integer amountOfDays) {
-        List<Opportunity> opportunities = new List<Opportunity>();
-        
-        for(Id accountId : accountIds) {
-            opportunities.addAll(OpportunityQueries.queryOpportunitiesByAccountId(accountIds));
+        if(accountIds == null || accountIds.size() == 0 || amountOfDays == null || amountOfDays == 0) {
+            return;
         }
+        
+        List<Opportunity> opportunities = OpportunityQueries.queryOpportunitiesByAccountId(accountIds);
 
         for(Opportunity opportunity : opportunities) {
             opportunity.CloseDate = opportunity.CloseDate.addDays(amountOfDays);
