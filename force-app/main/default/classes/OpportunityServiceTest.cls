@@ -406,15 +406,15 @@ public with sharing class OpportunityServiceTest {
         Integer amountOfMonths = -5;
         Date pastDate = System.today().addMonths(-5);
 
-        OpportunityService opportunityService = new OpportunityService();
+        OpportunityService service = new OpportunityService();
 
         Test.startTest();
-        opportunityService.closeOldOpportunities(amountOfMonths);
+        service.closeOldOpportunities(amountOfMonths);
         Test.stopTest();
 
         List<Opportunity> opportunities = [SELECT StageName FROM Opportunity WHERE CloseDate > :pastDate];
 
-        Assert.areEqual('Closed Lost', opportunities.get(0).StageName);
+        Assert.areEqual(OpportunityService.CLOSED_WON_OPP_STAGE, opportunities.get(0).StageName);
     }
     
     @IsTest 
