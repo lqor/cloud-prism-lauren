@@ -159,13 +159,8 @@ public class AccountService extends SObjectService implements SObjectServiceInte
         update accounts;
     }
     
-    public Boolean validateObject(SObject record) {
-        if(record instanceof Account) {
-            Account account = (Account) record;
-            return account.Name != null;
-        }
-        
-        return false;
+    public Boolean validateObject(SObject record) {        
+        return record instanceof Account && record.get('Name') != null;
     }
     
     public void formatRecord(SObject record) {
@@ -197,6 +192,25 @@ public class AccountService extends SObjectService implements SObjectServiceInte
             
             account.Name = formattedName.trim();
         }
+    }
+
+    public void formatRecord_igor(SObject record) {
+        if(!(record instanceof Account) || record == null || record.get('Name') == null) {
+           return;
+        }
+        
+        Account account = (Account) record;
+            
+        List<String> splitNames = account.Name.split(' ');
+        String formattedName = '';
+        
+        for(String name : splitNames) {
+            if(name != '') {
+                formattedName += name.trim().capitalize() + ' ';
+            }
+        }
+        
+        account.Name = formattedName.trim();
     }
     
     public override void updateObject(SObject record) {
