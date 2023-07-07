@@ -198,6 +198,26 @@ public class AccountService extends SObjectService implements SObjectServiceInte
             account.Name = formattedName.trim();
         }
     }
+
+    public void formatRecord_igor(SObject record) {
+        if(!(record instanceof Account) || record == null || record.get('Name') == null) {
+           return;
+        }
+        
+        Account account = (Account) record;
+            
+        List<String> splitNames = account.Name.split(' ');
+        System.debug('splitNames: ' + splitNames);
+        String formattedName = '';
+        
+        for(String name : splitNames) {
+            if(name != '') {
+                formattedName += name.trim().capitalize() + ' ';
+            }
+        }
+        
+        account.Name = formattedName.trim();
+    }
     
     public override void updateObject(SObject record) {
         if(record == null || !(record instanceof Account)) {
