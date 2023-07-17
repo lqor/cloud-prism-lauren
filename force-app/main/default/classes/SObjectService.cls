@@ -1,7 +1,6 @@
 public abstract with sharing class SObjectService {
     
     public abstract void updateObject(SObject record);
-    
     public abstract void insertObject(SObject record);
     
     public virtual List<SObject> filterRecords(List<SObject> records, Map<String, Object> filters) {
