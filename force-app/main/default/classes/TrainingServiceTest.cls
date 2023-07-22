@@ -2,21 +2,27 @@
 public with sharing class TrainingServiceTest {
 
     @TestSetup
-    static void setup() {}
-
-    @IsTest
-    static void beforeInsertTrigger_UnitTest() {
+    static void setup() {
         Restaurant__c restaurant = new Restaurant__c();
         restaurant.Name = 'Tam O\'Shanter';
         restaurant.CommissionRate__c = 15;
         restaurant.AverageMealCost__c = 55;
         insert restaurant;
-        
+
         Contact contact = new Contact(LastName = 'Trainer-One');
         insert contact;
 
         TrainingCourse__c trainingCourse = new TrainingCourse__c(Name = 'Test Trigger Course');
         insert(trainingCourse);
+
+
+    }
+
+    @IsTest
+    static void beforeInsertTrigger_UnitTest() {
+        Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
+        Contact contact = [SELECT Id FROM Contact LIMIT 1];
+        TrainingCourse__c trainingCourse = [SELECT Id FROM TrainingCourse__c LIMIT 1];
 
         List<Training__c> trainings = new List<Training__c>();
         for(Integer i = 1; i <= 5; i++) {
@@ -50,11 +56,7 @@ public with sharing class TrainingServiceTest {
 
     @IsTest
     static void beforeInsertTrigger_lazy() {
-        Restaurant__c restaurant = new Restaurant__c();
-        restaurant.Name = 'Tam O\'Shanter';
-        restaurant.CommissionRate__c = 15;
-        restaurant.AverageMealCost__c = 55;
-        insert restaurant;
+        Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
         training.Name = 'Test Trigger Training ';
@@ -78,11 +80,7 @@ public with sharing class TrainingServiceTest {
 
     @IsTest
     static void setRestaurantCommissionOnTrainings_UnitTest() {
-        Restaurant__c restaurant = new Restaurant__c();
-        restaurant.Name = 'Tam O\'Shanter';
-        restaurant.CommissionRate__c = 15;
-        restaurant.AverageMealCost__c = 55;
-        insert restaurant;
+        Restaurant__c restaurant = [SELECT Id, CommissionRate__c, AverageMealCost__c FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
         training.Name = 'Test Trigger Training ';
@@ -90,6 +88,46 @@ public with sharing class TrainingServiceTest {
         training.StartDate__c = System.today();
         training.EndDate__c = System.today();
         List<Training__c> trainings = new List<Training__c> {training};
+
+        TrainingService service = new TrainingService();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();     
+
+        Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
+        Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
+        Decimal probabilityToBuy = restaurantCommissionMetadata.ProbabilityToBuyPerParticipant__c / 100;
+        Decimal commissionRate = restaurant.CommissionRate__c / 100;
+        Decimal averageMealCost = restaurant.AverageMealCost__c;
+
+        Decimal expectedRestaurantCommission = numberOfParticipants * 
+                                               numberOfDays * 
+                                               commissionRate * 
+                                               probabilityToBuy * 
+                                               averageMealCost;
+
+        Test.startTest();
+        service.setRestaurantCommissionOnTrainings(trainings, null);
+        Test.stopTest();
+
+        Training__c result = trainings.get(0);
+        Assert.areEqual(expectedRestaurantCommission, result.RestaurantCommission__c);
+    }
+
+    @IsTest
+    static void updateRestaurantCommissionOnTrainings_UnitTest() {
+        Restaurant__c restaurant = [SELECT Id, CommissionRate__c, AverageMealCost__c FROM Restaurant__c LIMIT 1];
+
+        Training__c training = new Training__c();
+        training.Name = 'Test Trigger Training ';
+        training.Restaurant__c = restaurant.Id;
+        training.StartDate__c = System.today();
+        training.EndDate__c = System.today();
+        insert training;
+
+        List<Training__c> trainings = new List<Training__c> {training};
+        Map<Id, Training__c> oldMap = new Map<Id, Training__c>(trainings.deepClone(true));
+
+        trainings.get(0).EndDate__c = System.today().addDays(3);
+        update training;
 
         TrainingService service = new TrainingService();
         RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();     
@@ -147,7 +185,7 @@ public with sharing class TrainingServiceTest {
     static void setUniqueIdOnTrainings_UnitTest() {
         Training__c training = new Training__c();
         training.Name = 'Test Trigger Training ';
-        training.StartDate__c = System.today().addmonths(3).addDays(-10);
+        training.StartDate__c = System.today().addmonths(3).addDays(-15);
         training.EndDate__c = System.today().addmonths(3);
         List<Training__c> trainings = new List<Training__c> {training};
 
@@ -179,11 +217,7 @@ public with sharing class TrainingServiceTest {
 
     @IsTest
     static void updateCompletedTrainings_UnitTest() {
-        Restaurant__c restaurant = new Restaurant__c();
-        restaurant.Name = 'Tam O\'Shanter';
-        restaurant.CommissionRate__c = 15;
-        restaurant.AverageMealCost__c = 55;
-        insert restaurant;
+        Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
         training.Name = 'Test Trigger Training ';
@@ -227,15 +261,11 @@ public with sharing class TrainingServiceTest {
 
     @IsTest
     static void insertTasksForTrainings_lazy() {
-        Restaurant__c restaurant1 = new Restaurant__c();
-        restaurant1.Name = 'Tam O\'Shanter';
-        restaurant1.CommissionRate__c = 15;
-        restaurant1.AverageMealCost__c = 55;
-        insert restaurant1;
+        Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
         training.Name = 'UniqueName Training';
-        training.Restaurant__c = restaurant1.Id;
+        training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today();
         training.EndDate__c = System.today();
         List<Training__c> trainings = new List<Training__c> {training};
