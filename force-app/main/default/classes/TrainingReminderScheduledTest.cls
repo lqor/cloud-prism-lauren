@@ -29,14 +29,14 @@ public with sharing class TrainingReminderScheduledTest {
 
         Training__c training = [ 
             SELECT Id,
-                   Name, 
-                   StartDate__c, 
-                   EndDate__c, 
-                   TrainerContact__r.FirstName, 
-                   TrainerContact__r.LastName, 
+                   Name,
+                   StartDate__c,
+                   EndDate__c,
+                   TrainerContact__r.FirstName,
+                   TrainerContact__r.LastName,
                    TrainerContact__r.Email,
                    (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email FROM Participants__r)
-            FROM Training__c 
+            FROM Training__c
             WHERE Id IN (SELECT Training__c FROM Participant__c) AND
                   DAY_ONLY(convertTimezone(StartDate__c)) = :threeDaysFromToday AND
                   Status__c = :TrainingService.TRAINING_STATUS_SCHEDULED 

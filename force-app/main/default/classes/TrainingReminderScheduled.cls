@@ -76,7 +76,7 @@ global with sharing class TrainingReminderScheduled implements Schedulable {
             String participantName = participant.Contact__r.FirstName + ' ' + participant.Contact__r.LastName;
             bodyParticipantList += '<li>' + participantName + '</li>';
         }
-        bodyParticipantList += '</ul><br/><br/>'; 
+        bodyParticipantList += '</ul>';
         
         String bodySignature = '<p>Best regards,<br/><br/>Training Reminder</p>';
         
