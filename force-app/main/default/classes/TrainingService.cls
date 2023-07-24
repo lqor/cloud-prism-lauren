@@ -7,6 +7,14 @@ public with sharing class TrainingService {
     public static final String TASK_SUBJECT = 'Reminder: ';
     public static final String TASK_DESCRIPTION = 'This task is just a reminder that a new course is about to start.';
 
+    /**
+     * This method is part of the Training restaurant commission calculation process. It is called from the 
+     * trigger handler, "TrainingTriggerHandler," and the "ParticipantService" classes. It assigns the result 
+     * to the Restaurant Commission field for each training in the list.
+     * 
+     * @param newlist   List of trainings, with or without Ids, with or without participants
+     * @param oldMap    Old map of trainings, always null
+     */
     public void setRestaurantCommissionOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         Map<Id, Restaurant__c> restaurants = trainingRestaurants(newList);
         RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = queryRestaurantCommissionMetadata();     
@@ -17,43 +25,15 @@ public with sharing class TrainingService {
         }
     }
 
-    public void updateRestaurantCommissionOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
-        Set<Id> trainingIds = new Set<Id>();
-
-        for(Training__c training : newList) {
-            trainingIds.add(training.Id);
-        }
-
-        List<Training__c> trainingsWithParticipants = queryTrainingsWithParticipantsById(trainingIds);
-        Map<Id, Training__c> trainingsWithParticipantsMap = new Map<Id, Training__c>(trainingsWithParticipants);
-        Map<Id, Restaurant__c> restaurants = trainingRestaurants(trainingsWithParticipants);
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = queryRestaurantCommissionMetadata();     
-
-        for(Training__c training : newList) {
-            Training__c trainingWithParticipants = trainingsWithParticipantsMap.get(training.Id);
-            trainingWithParticipants.StartDate__c = training.StartDate__c;
-            trainingWithParticipants.EndDate__c = training.EndDate__c;
-
-            Decimal commission = calculateCommissionOnTraining(
-                trainingWithParticipants, 
-                restaurants, 
-                restaurantCommissionMetadata
-            );
-            
-            training.RestaurantCommission__c = commission;
-        }
-    }
-
-    private Map<Id, Restaurant__c> trainingRestaurants(List<Training__c> trainings) {
-        Set<Id> restaurantIds = new Set<Id>();
-
-        for(Training__c training : trainings) {
-            restaurantIds.add(training.Restaurant__c);
-        }
-
-        return new Map<Id, Restaurant__c>(queryTrainingRestaurantsById(restaurantIds));
-    }
-
+    /**
+     * This method contains the logic of the Training restaurant commission calculation process. It is 
+     * called from the "TrainingService" class. It returns the Decimal value of the restaurant commission 
+     * for a training.
+     * 
+     * @param training                      Training, with or without participants
+     * @param restaurants                   List of restaurants related to the trainings to be processed
+     * @param restaurantCommissionMetadata  Restaurant commission metadata
+     */
     private Decimal calculateCommissionOnTraining(
         Training__c training, 
         Map<Id, Restaurant__c> restaurants, 
@@ -74,16 +54,82 @@ public with sharing class TrainingService {
         return numberOfParticipants * numberOfDays * commissionRate * probabilityToBuy * averageMealCost;
     }
 
+    private Map<Id, Restaurant__c> trainingRestaurants(List<Training__c> trainings) {
+        Set<Id> restaurantIds = new Set<Id>();
+
+        for(Training__c training : trainings) {
+            restaurantIds.add(training.Restaurant__c);
+        }
+
+        return new Map<Id, Restaurant__c>(queryTrainingRestaurantsById(restaurantIds));
+    }
+
+    /**
+     * This method is part of the Training restaurant commission calculation process. It is called from the 
+     * trigger handler class, "TrainingTriggerHandler." Because it is called from a before update trigger, it 
+     * is necessary to set the Start Date and End Date of the queried trainings with the potentially newer 
+     * values from the incoming list of trainings. It assigns the result to the Restaurant Commission field 
+     * for each training in the list. Bug fix: filter for relevant trainings with updated start/end dates.
+     * 
+     * @param newlist   List of trainings, with Ids and without participants
+     * @param oldMap    Old map of trainings, always null
+     */
+    public void updateRestaurantCommissionOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
+        List<Training__c> trainingsToProcess = new List<Training__c>();
+        Set<Id> trainingIds = new Set<Id>();
+
+        for(Training__c training : newList) {
+            if(filterTrainingOnStartEndDateChanged(training, oldMap) != null) {
+                trainingIds.add(training.Id);
+                trainingsToProcess.add(training);
+            }
+        }
+
+        if(trainingsToProcess.isEmpty()) {
+            return;
+        }
+
+        List<Training__c> trainingsWithParticipants = queryTrainingsWithParticipantsById(trainingIds);
+        Map<Id, Training__c> trainingsWithParticipantsMap = new Map<Id, Training__c>(trainingsWithParticipants);
+        Map<Id, Restaurant__c> restaurants = trainingRestaurants(trainingsWithParticipants);
+        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = queryRestaurantCommissionMetadata();     
+
+        for(Training__c training : trainingsToProcess) {
+            Training__c trainingWithParticipants = trainingsWithParticipantsMap.get(training.Id);
+            trainingWithParticipants.StartDate__c = training.StartDate__c;
+            trainingWithParticipants.EndDate__c = training.EndDate__c;
+
+            Decimal commission = calculateCommissionOnTraining(
+                trainingWithParticipants, 
+                restaurants, 
+                restaurantCommissionMetadata
+            );
+            
+            training.RestaurantCommission__c = commission;
+        }
+    }
+
+    private Training__c filterTrainingOnStartEndDateChanged(Training__c training, Map<Id, Training__c> oldMap) {
+        Boolean isStartDateChanged = training.StartDate__c != oldMap.get(training.Id).StartDate__c;
+        Boolean isEndDateChanged = training.EndDate__c != oldMap.get(training.Id).EndDate__c;
+
+        return (isStartDateChanged || isEndDateChanged) ? training : null;
+    }
+
+    /**
+     * This method is part of the Training training duration calculation process. It is called from the 
+     * trigger handler class, "TrainingTriggerHandler." It assigns the result to the Training Duration 
+     * field for each training in the list.
+     * 
+     * @param newList   List of trainings, with or without participants
+     * @param oldMap    Old map of trainings or null
+     */
     public void setTrainingDurationOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         TrainingDurationMetadata__mdt trainingDurationMetadata = queryTrainingDurationMetadata();
 
         for(Training__c training : newList) {
             if(oldMap != null) {
-                Training__c oldTraining = oldMap.get(training.Id);
-                Boolean ifUpdate = training.StartDate__c != oldTraining.StartDate__c ||
-                                    training.EndDate__c != oldTraining.EndDate__c;
-
-                if(!ifUpdate) {
+                if(isTrainingStartEndDateUnchanged(training, oldMap)) {
                     break;
                 }
             } 
@@ -93,6 +139,21 @@ public with sharing class TrainingService {
         }
     }
 
+    private Boolean isTrainingStartEndDateUnchanged(Training__c training, Map<Id, Training__c> oldMap) {
+        Boolean isStartDateSame = training.StartDate__c == oldMap.get(training.Id).StartDate__c;
+        Boolean isEndDateSame = training.EndDate__c == oldMap.get(training.Id).EndDate__c;
+
+        return isStartDateSame && isEndDateSame;
+    }    
+
+    /**
+     * This method contains the logic of the Training training duration calculation process. It is called 
+     * from the "TrainingService" class. It returns the Integer result of the training duration for a training 
+     * session in hours.
+     * 
+     * @param training                  Training
+     * @param trainingDurationMetadata  Training duration metadata
+     */
     private Integer calculateTrainingDuration(
         Training__c training, 
         TrainingDurationMetadata__mdt trainingDurationMetadata
@@ -105,14 +166,18 @@ public with sharing class TrainingService {
         return numberOfDays * (Integer) trainingHoursPerDay + (Integer) preparationTime + (Integer) reviewTime;
     } 
 
+    /**
+     * This method is part of the Training unique id generation process. It is called from the trigger 
+     * handler class, "TrainingTriggerHandler." It assigns the result to the Unique Id field for each 
+     * training in the list.
+     * 
+     * @param newList   List of trainings, with or without participants
+     * @param oldMap    Old map of trainings or null
+     */
     public void setUniqueIdOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         for(Training__c training : newList) {
             if(oldMap != null) {
-                Training__c oldTraining = oldMap.get(training.Id);
-                Boolean ifUpdate = training.Name != oldTraining.Name || 
-                                   training.StartDate__c != oldTraining.StartDate__c;
-
-                if(!ifUpdate) {
+                if(isTrainingNameStartDateUnchanged(training, oldMap)) {
                     break;
                 }
             } 
@@ -121,6 +186,19 @@ public with sharing class TrainingService {
         }
     }
 
+    private Boolean isTrainingNameStartDateUnchanged(Training__c training, Map<Id, Training__c> oldMap) {
+        Boolean isNameSame = training.Name == oldMap.get(training.Id).Name;
+        Boolean isStartDateSame = training.StartDate__c == oldMap.get(training.Id).StartDate__c;
+
+        return isNameSame && isStartDateSame;
+    }  
+
+    /**
+     * This method contains the logic of the Training unique id generation process. It is called from the 
+     * "TrainingService" class. It returns the String result of the unique id for a training.
+     * 
+     * @param training                  Training
+     */
     private String generateUniqueId(Training__c training) {
         String pad0 = '0';
         String startDay = String.valueOf(training.StartDate__c.day()).length() == 1 ? 
@@ -141,6 +219,13 @@ public with sharing class TrainingService {
         return nameInitials + startDate;
     } 
 
+    /**
+     * This method is part of the Training organization process. It is called from the trigger handler class, 
+     * "TrainingTriggerHandler." It creates a task reminder associated with each training in the list.
+     * 
+     * @param newList   List of trainings
+     * @param oldMap    Old map of trainings or null
+     */
     public void insertTasksForTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         List<Task> tasksToInsert = new List<Task>();
 
@@ -168,6 +253,14 @@ public with sharing class TrainingService {
         return task;
     }
 
+    /**
+     * This method is part of the Training organization process. It is called from the trigger handler class, 
+     * "TrainingTriggerHandler." It assigns today's date as the completion date and updates the participant 
+     * statuses to match for each completed training in the list.
+     * 
+     * @param newList   List of trainings that have just been updated to finished status
+     * @param oldMap    Old map of trainings, never null
+     */
     public void updateCompletedTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         List<Training__c> completedTrainings = new List<Training__c>();
 

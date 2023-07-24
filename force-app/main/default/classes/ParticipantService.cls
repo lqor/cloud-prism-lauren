@@ -4,6 +4,14 @@ public with sharing class ParticipantService {
     public static final String PARTICIPANT_STATUS_PARTICIPATED = 'Participated';
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
 
+    /**
+     * This method is part of the Participant organization process. It is called from the trigger handler class, 
+     * "ParticipantTriggerHandler." The result is an error message indicating the duplicate participant cannot 
+     * be saved.
+     * 
+     * @param newlist   List of participants
+     * @param oldMap    Old map of trainings, always null
+     */
     public void preventDuplicateParticipantOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> trainingIds = new Set<Id>();
         Set<Id> contactIds = new Set<Id>();
@@ -30,6 +38,14 @@ public with sharing class ParticipantService {
         }
     }
 
+    /**
+     * This method is part of the Training restaurant commission calculation process. It is called from 
+     * the trigger handler class, "ParticipantTriggerHandler." It recalculates the result of the restaurant 
+     * commission when a participant is added or deleted and updates the trainings.
+     * 
+     * @param newlist   List of participants
+     * @param oldMap    Old map of trainings
+     */
     public void recalculateCommissionOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         TrainingService trainingService = new TrainingService();
         Set<Id> trainingIds = new Set<Id>();
