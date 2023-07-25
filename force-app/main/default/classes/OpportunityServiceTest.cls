@@ -530,7 +530,7 @@ public with sharing class OpportunityServiceTest {
         Opportunity opportunity = opportunityService.createNewOpportunity();
 
         Test.startTest();
-        opportunityService.insertOpportunity(opportunity);
+        insert(opportunity);
         Test.stopTest();
 
         Opportunity opportunityInserted = [SELECT Id FROM Opportunity WHERE Id = :opportunity.Id];
@@ -544,7 +544,7 @@ public with sharing class OpportunityServiceTest {
         List<Opportunity> opportunities = opportunityService.createOpportunities(5);
 
         Test.startTest();
-        opportunityService.insertOpportunities(opportunities);
+        insert(opportunities);
         Test.stopTest();
 
         List<Id> opportunityIds = new List<Id>();

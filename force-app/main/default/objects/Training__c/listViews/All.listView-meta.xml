@@ -6,6 +6,9 @@
     <columns>RestaurantCommission__c</columns>
     <columns>Status__c</columns>
     <columns>CompletionDate__c</columns>
+    <columns>TrainingDuration__c</columns>
+    <columns>UniqueId__c</columns>
+    <columns>StartDate__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

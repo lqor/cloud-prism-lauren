@@ -37,7 +37,7 @@ public with sharing class AccountServiceTest {
         Account account = accountService.createNewAccount('Test Account', 'Prospect', 'TA-001593');
 
         Test.startTest();
-        accountService.insertAccount(account);
+        insert(account);
         Test.stopTest();
 
         Account accountInserted = [SELECT Id FROM Account WHERE Id = :account.Id];
@@ -57,7 +57,7 @@ public with sharing class AccountServiceTest {
         }
 
         Test.startTest();
-        accountService.insertAccounts(accounts);
+        insert(accounts);
         Test.stopTest();
         
         for(Account account : accounts) {
