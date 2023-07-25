@@ -2,6 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>RestaurantCommission__c</fullName>
     <externalId>false</externalId>
+    <inlineHelpText>Restaurant Commission is calculated as follows: Number of Participants * Number of Days * Commission Rate * Probability to Buy per Participant * Average Meal Cost</inlineHelpText>
     <label>Restaurant Commission</label>
     <precision>18</precision>
     <required>false</required>

@@ -3,8 +3,6 @@ global with sharing class TrainingReminderScheduled implements Schedulable {
     /**
      * This method is part of the Training notification process. It is called from the scheduled class,
      * "TrainingReminderScheduled." 
-     * 
-     * @param sc    Contextual info related to the scheduled job
      */
     global void execute(SchedulableContext sc) {
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
@@ -70,14 +68,7 @@ global with sharing class TrainingReminderScheduled implements Schedulable {
         String bodyStartDate = 'training that will take place from ' + startDate;
         String bodyEndDate = ' until ' + endDate + '.</p>';
         String bodyParticipantNumber = '<p>There are a total of ' + numberOfParticipants + ' participants:</p>';
-        
-        String bodyParticipantList = '<ul>';
-        for(Participant__c participant : training.Participants__r) {
-            String participantName = participant.Contact__r.FirstName + ' ' + participant.Contact__r.LastName;
-            bodyParticipantList += '<li>' + participantName + '</li>';
-        }
-        bodyParticipantList += '</ul>';
-        
+        String bodyParticipantList = createParticipantList(training.Participants__r);
         String bodySignature = '<p>Best regards,<br/><br/>Training Reminder</p>';
         
         return bodyGreeting + 
@@ -89,16 +80,21 @@ global with sharing class TrainingReminderScheduled implements Schedulable {
                bodySignature; 
     }
 
+    private String createParticipantList(List<Participant__c> participants) {
+        String participantList = '<ul>';
+
+        for(Participant__c participant : participants) {
+            String participantName = participant.Contact__r.FirstName + ' ' + participant.Contact__r.LastName;
+            participantList += '<li>' + participantName + '</li>';
+        }
+
+        return participantList += '</ul>';
+    }
+
     public List<Training__c> queryTrainingsWithParticipantsByIdAndDate(Date threeDaysFromToday) {
         return [
-            SELECT Id, 
-                   Name, 
-                   StartDate__c, 
-                   EndDate__c, 
-                   TrainerContact__r.FirstName, 
-                   TrainerContact__r.LastName, 
-                   TrainerContact__r.Email,
-                   TrainingCourse__r.Name,
+            SELECT Id, Name, StartDate__c, EndDate__c, TrainerContact__r.FirstName, TrainerContact__r.LastName, 
+                   TrainerContact__r.Email, TrainingCourse__r.Name,
                    (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email FROM Participants__r)
             FROM Training__c 
             WHERE Id IN (SELECT Training__c FROM Participant__c) AND 

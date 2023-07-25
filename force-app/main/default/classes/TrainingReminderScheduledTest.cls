@@ -24,31 +24,14 @@ public with sharing class TrainingReminderScheduledTest {
     }
 
     @IsTest
-    static void execute_UnitTest() {
-        Date threeDaysFromToday = System.today().addDays(3);
-
-        Training__c training = [ 
-            SELECT Id,
-                   Name,
-                   StartDate__c,
-                   EndDate__c,
-                   TrainerContact__r.FirstName,
-                   TrainerContact__r.LastName,
-                   TrainerContact__r.Email,
-                   (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email FROM Participants__r)
-            FROM Training__c
-            WHERE Id IN (SELECT Training__c FROM Participant__c) AND
-                  DAY_ONLY(convertTimezone(StartDate__c)) = :threeDaysFromToday AND
-                  Status__c = :TrainingService.TRAINING_STATUS_SCHEDULED 
-            LIMIT 1
-        ];
-    
+    static void execute_UnitTest() {    
         TrainingReminderScheduled reminder = new TrainingReminderScheduled();
         Test.startTest();
         reminder.execute(null);
+        Integer invocations = Limits.getEmailInvocations();
         Test.stopTest();
 
-        // Assert.areEqual(expected, actual);
+        Assert.isTrue(invocations > 0);
     }
 
     @IsTest
@@ -58,6 +41,8 @@ public with sharing class TrainingReminderScheduledTest {
 
         Test.startTest();
         String jobId = System.schedule('Training Reminder Emails', cronExpression, reminder);
+        Test.stopTest();
+
         CronTrigger cronTrigger = [
             SELECT Id, CronExpression, TimesTriggered, NextFireTime 
             FROM CronTrigger 
@@ -65,6 +50,27 @@ public with sharing class TrainingReminderScheduledTest {
         ];
         Assert.areEqual(cronExpression, cronTrigger.CronExpression);
         Assert.areEqual(0, cronTrigger.TimesTriggered);
+    }
+
+    @IsTest
+    static void queryTrainingsWithParticipantsByIdAndDate_UnitTest() {
+        Integer daysToAdd = 3;
+        Integer expectedSize = 1;
+
+        Training__c training = new Training__c();
+        training.Name = 'Unqualified Training';
+        training.StartDate__c = System.now().addDays(daysToAdd * (-1));
+        training.EndDate__c = System.today().addDays(daysToAdd * (-1));
+        insert training;
+
+        Date inThreeDays = System.today().addDays(daysToAdd);
+        Test.startTest();
+        List<Training__c> trainings = new TrainingReminderScheduled().queryTrainingsWithParticipantsByIdAndDate(
+            inThreeDays
+        );
         Test.stopTest();
+
+        Assert.areEqual(expectedSize, trainings.size());
+        Assert.areNotEqual(training.Name, trainings.get(0).Name);
     }
 }
