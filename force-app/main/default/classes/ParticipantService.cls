@@ -10,7 +10,7 @@ public with sharing class ParticipantService {
      * be saved.
      * 
      * @param newlist   List of participants
-     * @param oldMap    Old map of trainings, always null
+     * @param oldMap    Old map of participants, always null
      */
     public void preventDuplicateParticipantOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> trainingIds = new Set<Id>();
@@ -44,7 +44,7 @@ public with sharing class ParticipantService {
      * commission when a participant is added or deleted and updates the trainings.
      * 
      * @param newlist   List of participants
-     * @param oldMap    Old map of trainings
+     * @param oldMap    Old map of participants
      */
     public void recalculateCommissionOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         TrainingService trainingService = new TrainingService();
@@ -62,6 +62,28 @@ public with sharing class ParticipantService {
         }
     }
 
+    /**
+     * This method is part of the Participant notification process. It is called from the trigger handler class, 
+     * "ParticipantTriggerHandler." It submits the queueable class, "RegistrationConfirmationQueueable," as a job 
+     * on the queue.
+     * 
+     * @param newlist   List of participants
+     * @param oldMap    Old map of participants
+     */
+    public void sendRegistrationConfirmationEmail(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
+        Set<Id> trainingIds = new Set<Id>();
+        Set<Id> participantIds = new Set<Id>();
+
+        for(Participant__c participant : newList) {
+            participantIds.add(participant.Id);
+            trainingIds.add(participant.Training__c);
+        }
+
+        List<Training__c> trainingsWithParticipants = queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+
+        Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
+    }
+
     public List<Training__c> queryTrainingsWithParticipantsById(Set<Id> ids) {
         return [
             SELECT Id, Restaurant__c, StartDate__c, EndDate__c, 
@@ -75,4 +97,16 @@ public with sharing class ParticipantService {
         return [SELECT Id, CanBookForOthers__c FROM Contact WHERE Id IN :ids];
     }
 
+    public List<Training__c> queryTrainingsForNewParticipantsById(Set<Id> trainingIds, Set<Id> participantIds) {
+        return [
+            SELECT Id, Name, StartDate__c, EndDate__c, TrainerContact__r.FirstName, TrainerContact__r.LastName, 
+                   TrainerContact__r.Email, TrainingCourse__r.Name,
+                   (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
+                   FROM Participants__r
+                   WHERE Id IN :participantIds)
+            FROM Training__c 
+            WHERE Id IN :trainingIds
+        ];
+    }
+    
 }

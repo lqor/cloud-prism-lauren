@@ -1,10 +1,10 @@
-global with sharing class TrainingReminderScheduled implements Schedulable {
+public class TrainingReminderScheduled implements Schedulable {
 
     /**
      * This method is part of the Training notification process. It is called from the scheduled class,
      * "TrainingReminderScheduled." 
      */
-    global void execute(SchedulableContext sc) {
+    public void execute(SchedulableContext sc) {
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
         Date threeDaysFromToday = System.today().addDays(3);
 
@@ -59,8 +59,8 @@ global with sharing class TrainingReminderScheduled implements Schedulable {
 
     private String createHtmlBody(Training__c training) {
         String trainerName = training.TrainerContact__r.FirstName;
-        String startDate = String.valueOf(training.StartDate__c.formatLong());
-        String endDate = String.valueOf(training.EndDate__c.formatLong());
+        String startDate = String.valueOf(training.StartDate__c.format('d MMM y, K:m a z'));
+        String endDate = String.valueOf(training.EndDate__c.format('d MMM y, K:m a z'));
         Integer numberOfParticipants = training.Participants__r.size();
 
         String bodyGreeting = '<p>Dear ' + trainerName + ',</p>';
