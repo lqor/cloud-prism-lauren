@@ -1,7 +1,4 @@
 public virtual interface SObjectServiceInterface {
-
-    Boolean validateObject(SObject record);
-    
-    void formatRecord(SObject record);
-    
+  Boolean validateObject(SObject record);
+  void formatRecord(SObject record);
 }
