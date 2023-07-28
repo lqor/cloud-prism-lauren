@@ -1,4 +1,4 @@
-public with sharing class RegistrationConfirmationQueueable implements Queueable {
+public class RegistrationConfirmationQueueable implements Queueable {
   private List<Training__c> trainings;
 
   public RegistrationConfirmationQueueable(List<Training__c> trainings) {

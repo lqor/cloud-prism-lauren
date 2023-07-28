@@ -1,5 +1,5 @@
 @IsTest
-public with sharing class RegistrationConfirmationQueueableTest {
+public class RegistrationConfirmationQueueableTest {
   @TestSetup
   static void setup() {
     Contact contact1 = new Contact(

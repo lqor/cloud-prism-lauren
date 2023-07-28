@@ -1,5 +1,5 @@
 @IsTest
-public with sharing class TrainingReminderScheduledTest {
+public class TrainingReminderScheduledTest {
   @TestSetup
   static void setup() {
     Contact contact1 = new Contact(

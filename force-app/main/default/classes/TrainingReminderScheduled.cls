@@ -1,4 +1,4 @@
-global with sharing class TrainingReminderScheduled implements Schedulable {
+public class TrainingReminderScheduled implements Schedulable {
   /**
    * This method is part of the Training notification process. It is called from the scheduled class,
    * "TrainingReminderScheduled."
