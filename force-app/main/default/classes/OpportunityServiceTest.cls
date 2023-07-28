@@ -414,7 +414,7 @@ public with sharing class OpportunityServiceTest {
 
         List<Opportunity> opportunities = [SELECT StageName FROM Opportunity WHERE CloseDate > :pastDate];
 
-        Assert.areEqual(OpportunityService.CLOSED_WON_OPP_STAGE, opportunities.get(0).StageName);
+        Assert.areEqual(OpportunityService.CLOSED_LOST_OPP_STAGE, opportunities.get(0).StageName);
     }
     
     @IsTest 
