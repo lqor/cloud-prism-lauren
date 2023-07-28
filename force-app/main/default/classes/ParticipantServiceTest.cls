@@ -16,8 +16,8 @@ public with sharing class ParticipantServiceTest {
         training.EndDate__c = System.today().addMonths(1);
         insert training;
 
-        Contact contact1 = new Contact(LastName = 'Participant-One', CanBookForOthers__c = true);
-        Contact contact2 = new Contact(LastName = 'Participant-Two', CanBookForOthers__c = false);
+        Contact contact1 = new Contact(LastName = 'Participant-One', CanBookForOthers__c = true, Email = 'e@mail.com');
+        Contact contact2 = new Contact(LastName = 'Participant-Two', CanBookForOthers__c = false, Email = 'e@mail.com');
         List<Contact> contacts = new List<Contact> {contact1, contact2};
         insert contacts;
 
@@ -88,7 +88,6 @@ public with sharing class ParticipantServiceTest {
         Participant__c dupParticipant2 = new Participant__c(Contact__c = contact2.Id, Training__c = training.Id);
         List<Participant__c> dupParticipants = new List<Participant__c> {dupParticipant1, dupParticipant2};
 
-        ParticipantService service = new ParticipantService();
         try {
             Test.startTest();
             insert dupParticipants;
@@ -120,9 +119,8 @@ public with sharing class ParticipantServiceTest {
         List<Participant__c> participants = new List<Participant__c> {participant1, participant2};
         insert participants;
 
-        ParticipantService service = new ParticipantService();
         Test.startTest();
-        service.recalculateCommissionOnTrainings(participants, null);
+        new ParticipantService().recalculateCommissionOnTrainings(participants, null);
         Test.stopTest();
 
         List<Training__c> trainingsUpdated = [
@@ -136,4 +134,48 @@ public with sharing class ParticipantServiceTest {
         Assert.areEqual(expectedParticipantsSize, result.Participants__r.size());
         Assert.areEqual(26.40, result.RestaurantCommission__c);
     }
+
+    @IsTest
+    static void sendRegistrationConfirmationEmail_UnitTest() {
+        List<Participant__c> participants = [SELECT Id, Training__c, Contact__c FROM Participant__c];
+
+        Test.startTest();
+        new ParticipantService().sendRegistrationConfirmationEmail(participants, null);
+        Test.stopTest();
+
+        List<AsyncApexJob> job = [SELECT Id, Status, JobType, ApexClass.Name FROM AsyncApexJob];
+
+        AsyncApexJob result = job.get(0);
+        Assert.areEqual('Completed', result.Status);
+        Assert.areEqual('Queueable', result.JobType);
+        Assert.areEqual('RegistrationConfirmationQueueable', result.ApexClass.Name);
+    }
+
+    @IsTest
+    static void queryTrainingsForNewParticipantsById_UnitTest() {
+        Integer expectedParticipantsSize = 1;
+        Training__c training = [SELECT Id, Name FROM Training__c];
+
+        Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
+        insert newContact;
+
+        Participant__c newParticipant = new Participant__c(Contact__c = newContact.Id, Training__c = training.Id);
+        insert newParticipant;
+
+        Set<Id> trainingIds = new Set<Id>();
+        trainingIds.add(training.Id);
+
+        Set<Id> participantIds = new Set<Id>();
+        participantIds.add(newParticipant.Id);
+
+        ParticipantService service = new ParticipantService();
+        Test.startTest();
+        List<Training__c> trainings = service.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        Test.stopTest();
+
+        Training__c result = trainings.get(0);
+        Assert.areEqual(expectedParticipantsSize, result.Participants__r.size());
+        Assert.areEqual(newContact.LastName, result.Participants__r.get(0).Contact__r.LastName);
+    }
+
 }

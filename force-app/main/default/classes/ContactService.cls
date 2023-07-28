@@ -10,11 +10,9 @@ public with sharing class ContactService extends SObjectService implements SObje
         Contact secondContact = new Contact();
         
         firstContact.LastName = 'Miyazaki';
-        firstContact.Sign_Up_Date__c = System.today();
         firstContact.AccountId = twoAccounts.get(0).Id;
         
         secondContact.LastName = 'Miyamoto';
-        secondContact.Sign_Up_Date__c = System.today();
         secondContact.AccountId = twoAccounts.get(1).Id;
         
         twoContacts.add(firstContact);
@@ -47,7 +45,7 @@ public with sharing class ContactService extends SObjectService implements SObje
     public Boolean validateObject(SObject record) {
         if(record instanceof Contact) {
             Contact contact = (Contact) record;
-            return contact.LastName != null && contact.Sign_Up_Date__c != null;
+            return contact.LastName != null;
         }
         
         return false;
