@@ -31,7 +31,7 @@ public with sharing class TrainingService {
      * for a training.
      * 
      * @param training                      Training, with or without participants
-     * @param restaurants                   List of restaurants related to the trainings to be processed
+     * @param restaurants                   Map of restaurants related to the trainings to be processed
      * @param restaurantCommissionMetadata  Restaurant commission metadata
      */
     private Decimal calculateCommissionOnTraining(
@@ -197,7 +197,7 @@ public with sharing class TrainingService {
      * This method contains the logic of the Training unique id generation process. It is called from the 
      * "TrainingService" class. It returns the String result of the unique id for a training.
      * 
-     * @param training                  Training
+     * @param training  Training
      */
     private String generateUniqueId(Training__c training) {
         String pad0 = '0';
@@ -265,10 +265,7 @@ public with sharing class TrainingService {
         List<Training__c> completedTrainings = new List<Training__c>();
 
         for(Training__c training : newList) {
-            Boolean isJustCompleted = training.Status__c == TRAINING_STATUS_FINISHED && 
-                                      oldMap.get(training.Id).Status__c != TRAINING_STATUS_FINISHED;
-
-            if(isJustCompleted) {
+            if(isStatusUpdatedToFinished(training, oldMap)) {
                 training.CompletionDate__c = System.today();
                 completedTrainings.add(training);
             }
@@ -276,6 +273,13 @@ public with sharing class TrainingService {
 
         updateParticipantStatus(completedTrainings);
     }
+
+    private Boolean isStatusUpdatedToFinished(Training__c training, Map<Id, Training__c> oldMap) {
+        Boolean isStatusFinished = training.Status__c == TRAINING_STATUS_FINISHED;
+        Boolean wasStatusNotFinished = oldMap.get(training.Id).Status__c != TRAINING_STATUS_FINISHED;
+
+        return isStatusFinished && wasStatusNotFinished;
+    }  
 
     private void updateParticipantStatus(List<Training__c> trainings) {
         List<Participant__c> participantsToUpdate = new List<Participant__c>();

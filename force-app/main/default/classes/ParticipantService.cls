@@ -63,9 +63,9 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant notification process. It is called from the trigger handler class, 
-     * "ParticipantTriggerHandler." It submits the queueable class, "RegistrationConfirmationQueueable," as a job 
-     * on the queue.
+     * This method is part of the Participant registration confirmation process. It is called from the trigger 
+     * handler class, "ParticipantTriggerHandler." It submits the queueable class, "RegistrationConfirmationQueueable," 
+     * as a job on the queue.
      * 
      * @param newlist   List of participants
      * @param oldMap    Old map of participants
