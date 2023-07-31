@@ -221,7 +221,7 @@ public with sharing class OpportunityService extends SObjectService implements S
             opportunity.StageName = CLOSED_LOST_OPP_STAGE;
         }
         
-        update opportunities;
+        update opportunities;   
     }
     
     public void addDaysToOpportunities(List<Id> accountIds, Integer amountOfDays) {
