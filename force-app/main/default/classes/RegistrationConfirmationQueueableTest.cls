@@ -52,32 +52,4 @@ public class RegistrationConfirmationQueueableTest {
         Assert.areEqual('RegistrationConfirmationQueueable', job.ApexClass.Name);
     }
 
-    @IsTest
-    static void createParticipantRegistrationEmailForCourse_UnitTest() {
-        Training__c training = [SELECT Id, TrainingCourse__r.Name FROM Training__c];
-        Participant__c participant = [SELECT Id, Contact__r.Email FROM Participant__c];
-        String expectedSubject = 'Enrollment Confirmation: ' + training.TrainingCourse__r.Name;
-        String expectedEmail = participant.Contact__r.Email;
-
-        Set<Id> trainingIds = new Set<Id>();
-        trainingIds.add(training.Id);
-
-        Set<Id> participantIds = new Set<Id>();
-        participantIds.add(participant.Id);
-
-        ParticipantService service = new ParticipantService();
-        List<Training__c> trainings = service.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
-
-        RegistrationConfirmationQueueable confirmation = new RegistrationConfirmationQueueable(trainings);
-        Test.startTest();
-        Messaging.SingleEmailMessage email = confirmation.createParticipantRegistrationEmailForCourse(
-            trainings.get(0), 
-            trainings.get(0).Participants__r.get(0)
-        );
-        Test.stopTest();
-
-        Assert.areEqual(expectedSubject, email.getSubject());
-        Assert.areEqual(expectedEmail, email.getToAddresses().get(0));
-    }
-
 }

@@ -227,7 +227,7 @@ public with sharing class TrainingServiceTest {
         training.Status__c = TrainingService.TRAINING_STATUS_SCHEDULED;
         insert training;
 
-        Contact contact = new Contact(LastName = 'Participant-One');
+        Contact contact = new Contact(LastName = 'Participant-One', Email = 'e@mail.com');
         insert contact;
 
         Participant__c participant = new Participant__c();

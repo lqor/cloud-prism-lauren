@@ -136,6 +136,26 @@ public with sharing class ParticipantServiceTest {
     }
 
     @IsTest
+    static void recalculateRestaurantCommissionOnDelete_UnitTest() {
+        Integer expectedParticipantsSize = 1;
+        List<Training__c> training = [SELECT Id, (SELECT Id FROM Participants__r) FROM Training__c];
+        Participant__c participant = training.get(0).Participants__r.get(0);
+
+        Test.startTest();
+        delete participant;
+        Test.stopTest();
+
+        List<Training__c> trainingsUpdated = [
+            SELECT Id, RestaurantCommission__c, (SELECT Id FROM Participants__r) 
+            FROM Training__c
+        ];
+
+        Training__c result = trainingsUpdated.get(0);
+        Assert.areEqual(expectedParticipantsSize, result.Participants__r.size());
+        Assert.areEqual(6.6, result.RestaurantCommission__c);
+    }
+
+    @IsTest
     static void sendRegistrationConfirmationEmail_UnitTest() {
         List<Participant__c> participants = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
@@ -149,6 +169,55 @@ public with sharing class ParticipantServiceTest {
         Assert.areEqual('Completed', result.Status);
         Assert.areEqual('Queueable', result.JobType);
         Assert.areEqual('RegistrationConfirmationQueueable', result.ApexClass.Name);
+    }
+
+    @IsTest
+    static void queryTrainingsWithParticipantsById_UnitTest() {
+        Integer expectedParticipantsSize = 3;
+        Training__c training = [SELECT Id, Name FROM Training__c];
+
+        Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
+        insert newContact;
+
+        Participant__c newParticipant = new Participant__c(Contact__c = newContact.Id, Training__c = training.Id);
+        insert newParticipant;
+
+        Set<Id> trainingIds = new Set<Id>();
+        trainingIds.add(training.Id);
+
+        ParticipantService service = new ParticipantService();
+        Test.startTest();
+        List<Training__c> trainings = service.queryTrainingsWithParticipantsById(trainingIds);
+        Test.stopTest();
+
+        Training__c result = trainings.get(0);
+        Assert.areEqual(expectedParticipantsSize, result.Participants__r.size());
+        for(Participant__c participant : result.Participants__r) {
+            Assert.areEqual(training.Id, participant.Training__c);
+        }
+    }
+
+    @IsTest
+    static void queryContactsOfParticipantsById_UnitTest() {
+        Training__c training = [SELECT Id, Name FROM Training__c];
+
+        Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
+        insert newContact;
+
+        Participant__c newParticipant = new Participant__c(Contact__c = newContact.Id, Training__c = training.Id);
+        insert newParticipant;
+
+        Set<Id> contactIds = new Set<Id>();
+        contactIds.add(newParticipant.Contact__c);
+
+        ParticipantService service = new ParticipantService();
+        Test.startTest();
+        List<Contact> contacts = service.queryContactsOfParticipantsById(contactIds);
+        Test.stopTest();
+
+        Contact result = contacts.get(0);
+        Assert.areEqual(newContact.Id, result.Id);
+        Assert.areEqual(newContact.CanBookForOthers__c, result.CanBookForOthers__c);
     }
 
     @IsTest
