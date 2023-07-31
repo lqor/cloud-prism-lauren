@@ -224,6 +224,7 @@ public with sharing class OpportunityService extends SObjectService implements S
         update opportunities;   
     }
     
+    /** */
     public void addDaysToOpportunities(List<Id> accountIds, Integer amountOfDays) {
         if(accountIds == null || accountIds.size() == 0 || amountOfDays == null || amountOfDays == 0) {
             return;
