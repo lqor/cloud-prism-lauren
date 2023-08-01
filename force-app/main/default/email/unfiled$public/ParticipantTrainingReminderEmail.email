@@ -1,0 +1,11 @@
+<messaging:emailTemplate subject="Training Reminder: {!relatedTo.Training__r.Name}" recipientType="Contact" relatedToType="Participant__c">
+  <messaging:htmlEmailBody > 
+    <HTML>
+      <body>
+        <p>Dear {!recipient.FirstName},</p>
+        <p>This is an automatic reminder for the upcoming <b>{!relatedTo.Training__r.Name}</b> training on {!relatedTo.Training__r.StartDate__c} through {!relatedTo.Training__r.StartDate__c}.</p>
+        <p>Best regards,<br/><br/>Training Reminder</p>
+      </body>
+    </html>
+  </messaging:htmlEmailBody>
+</messaging:emailTemplate>
