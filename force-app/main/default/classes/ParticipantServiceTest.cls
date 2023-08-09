@@ -21,6 +21,7 @@ public with sharing class ParticipantServiceTest {
         List<Contact> contacts = new List<Contact> {contact1, contact2};
         insert contacts;
 
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
         Participant__c participant1 = new Participant__c(Contact__c = contact1.Id, Training__c = training.Id);
         Participant__c participant2 = new Participant__c(Contact__c = contact2.Id, Training__c = training.Id);
         List<Participant__c> participants = new List<Participant__c> {participant1, participant2};
@@ -88,6 +89,8 @@ public with sharing class ParticipantServiceTest {
         Participant__c dupParticipant2 = new Participant__c(Contact__c = contact2.Id, Training__c = training.Id);
         List<Participant__c> dupParticipants = new List<Participant__c> {dupParticipant1, dupParticipant2};
 
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         try {
             Test.startTest();
             insert dupParticipants;
@@ -115,6 +118,8 @@ public with sharing class ParticipantServiceTest {
         Participant__c participant2 = new Participant__c();
         participant2.Contact__c = contacts.get(1).Id;
         participant2.Training__c = training.Id;
+
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
 
         List<Participant__c> participants = new List<Participant__c> {participant1, participant2};
         insert participants;
@@ -157,6 +162,8 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void sendRegistrationConfirmationEmail_UnitTest() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         List<Participant__c> participants = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
         Test.startTest();
@@ -179,6 +186,8 @@ public with sharing class ParticipantServiceTest {
         Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
         insert newContact;
 
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         Participant__c newParticipant = new Participant__c(Contact__c = newContact.Id, Training__c = training.Id);
         insert newParticipant;
 
@@ -199,6 +208,8 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryContactsOfParticipantsById_UnitTest() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         Training__c training = [SELECT Id, Name FROM Training__c];
 
         Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
@@ -222,6 +233,8 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryTrainingsForNewParticipantsById_UnitTest() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         Integer expectedParticipantsSize = 1;
         Training__c training = [SELECT Id, Name FROM Training__c];
 
@@ -246,5 +259,57 @@ public with sharing class ParticipantServiceTest {
         Assert.areEqual(expectedParticipantsSize, result.Participants__r.size());
         Assert.areEqual(newContact.LastName, result.Participants__r.get(0).Contact__r.LastName);
     }
+
+    @IsTest
+    static void requestPaymentLink_UnitTest_lazy() {
+        Contact contact = [SELECT Id FROM Contact LIMIT 1]; 
+        Training__c training = [SELECT Id FROM Training__c LIMIT 1];
+
+        Participant__c participant = new Participant__c(Contact__c = contact.Id, Training__c = training.Id);
+
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.startTest();
+        insert participant;
+        Test.stopTest();
+
+        Participant__c updatedParticipant = [SELECT Id, PaymentLink__c FROM Participant__c LIMIT 1];
+        Assert.areEqual(PaymentLinkHttpCalloutMock.PAYMENT_LINK, updatedParticipant.PaymentLink__c);
+    }
+
+    /*
+    @IsTest
+    static void requestPaymentLink_UnitTest() {
+        Contact contact = [SELECT Id FROM Contact LIMIT 1];
+        Training__c training = [SELECT Id FROM Training__c LIMIT 1];
+
+        Participant__c participant = new Participant__c(Contact__c = contact.Id, Training__c = training.Id);
+        List<Participant__c> participants = new List<Participant__c> {participant};
+        insert participants;
+
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
+        PaymentLinkCallout.isHttpCalloutMockTest = true;
+        List<HttpResponse> responses = PaymentLinkCallout.requestPaymentLink(participants);
+
+        for(HttpResponse response : responses) {
+            Assert.areEqual(PaymentLinkCallout.RESPONSE_STATUS_CODE_200, response.getStatusCode());
+            Assert.areEqual('application/json', response.getHeader('Content-Type'));
+
+            String actualBody = response.getBody();
+            String expectedBody = '{"payer":{"link":"https://pry.me/p/1688117280"}}';
+            Assert.areEqual(expectedBody, actualBody);
+        }
+
+        Map<String, Object> paymentObject = (Map<String, Object>) JSON.deserializeUntyped(responses.get(0).getBody());
+        Map<String, Object> payer = (Map<String, Object>) paymentObject.get('payer');
+
+        String expectedPaymentLink = 'https://pry.me/p/1688117280';
+        Assert.areEqual(expectedPaymentLink, (String) payer.get('link'));
+        Test.stopTest();
+
+        Participant__c updatedParticipant = [SELECT Id, PaymentLink__c FROM Participant__c LIMIT 1];
+        Assert.areEqual(expectedPaymentLink, updatedParticipant.PaymentLink__c);
+    }*/
 
 }
