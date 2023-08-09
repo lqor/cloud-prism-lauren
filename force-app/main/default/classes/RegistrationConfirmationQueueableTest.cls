@@ -39,7 +39,7 @@ public class RegistrationConfirmationQueueableTest {
 
         ParticipantService service = new ParticipantService();
         List<Training__c> trainings = service.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
-        
+
         Test.startTest();
         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
         Test.stopTest();

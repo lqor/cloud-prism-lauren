@@ -70,9 +70,6 @@ public class TrainingReminderScheduledTest {
         );
         Test.stopTest();
 
-        System.debug('trainings' + trainings);
-        System.debug('trainings' + trainings.get(0).Participants__r.size());
-
         Assert.areEqual(expectedSize, trainings.size());
         Assert.areNotEqual(training.Name, trainings.get(0).Name);
     }

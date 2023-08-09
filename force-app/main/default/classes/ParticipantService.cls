@@ -68,7 +68,7 @@ public with sharing class ParticipantService {
      * as a job on the queue.
      * 
      * @param newlist   List of participants
-     * @param oldMap    Old map of participants
+     * @param oldMap    Old map of participants, always null
      */
     public void sendRegistrationConfirmationEmail(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> trainingIds = new Set<Id>();
@@ -101,12 +101,12 @@ public with sharing class ParticipantService {
         return [
             SELECT Id, Name, StartDate__c, EndDate__c, TrainerContact__r.FirstName, TrainerContact__r.LastName, 
                    TrainerContact__r.Email, TrainingCourse__r.Name,
-                   (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
+                   (SELECT Id, PaymentLink__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
                    FROM Participants__r
                    WHERE Id IN :participantIds)
             FROM Training__c 
             WHERE Id IN :trainingIds
         ];
     }
-    
+
 }

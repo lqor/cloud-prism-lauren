@@ -10,7 +10,7 @@ public with sharing class EmailService {
      * @param training      Training that is scheduled to start in 3 days
      */
     public static Messaging.SingleEmailMessage createTrainerReminderEmail(Training__c training) {
-        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();       
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
         String subject = 'Training Reminder: ' + training.Name;
 
         email.setToAddresses(new List<String> {training.TrainerContact__r.Email});
@@ -33,7 +33,7 @@ public with sharing class EmailService {
         String bodyParticipantNumber = '<p>There are a total of ' + numberOfParticipants + ' participants:</p>';
         String bodyParticipantList = createParticipantList(training.Participants__r);
         String bodySignature = '<p>Best regards,<br/><br/>Training Reminder</p>';
-        
+
         return bodyGreeting + 
                bodyCourse + 
                bodyStartDate + 
@@ -70,7 +70,6 @@ public with sharing class EmailService {
         email.setTargetObjectId(participant.Contact__r.Id);
         email.setWhatId(participant.Id);
         email.setSaveAsActivity(false);
-
         email.setTemplateId(queryEmailTemplateForParticipantTrainingReminder().Id);
 
         return email;
@@ -78,7 +77,7 @@ public with sharing class EmailService {
 
     /**
      * This method is part of the Participant registration confirmation process. It is called from the 
-     * queueable class, "RegistrationConfirmationQueueable." It returns an email confirming enrollment.
+     * "PaymentLinkCallout" class. It returns an email confirming enrollment, including payment link.
      * 
      * @param training      Training course the new participant has registered for
      * @param participant   Participant to be notified
@@ -103,20 +102,25 @@ public with sharing class EmailService {
         String courseName = training.TrainingCourse__r.Name;
         String startDate = String.valueOf(training.StartDate__c.format(FORMAT_DATE_TIME));
         String endDate = String.valueOf(training.EndDate__c.format(FORMAT_DATE_TIME));
+        String paymentLink = participant.PaymentLink__c;
 
         String bodyGreeting = '<p>Dear ' + participantName + ',</p>';
         String bodyCourse = '<p>Congrats! You\'re all signed up for your <b>' + courseName + '</b> course with ';
         String bodyTrainer = trainerName + ' on ';
         String bodyStartDate = startDate + ' through ';
         String bodyEndDate = endDate + '.</p>';
+        String bodyPayment = '<p>To complete your registration, please make a payment by clicking on the following ';
+        String bodyPaymentLink = 'link:<br/>' + paymentLink + '</p>';
         String bodyClose = '<p>We look forward to seeing you at the training!</p>';
         String bodySignature = '<p>Best regards,<br/><br/>Cloud Prism</p>';
-        
+
         return bodyGreeting + 
                bodyCourse + 
                bodyTrainer + 
                bodyStartDate + 
                bodyEndDate + 
+               bodyPayment + 
+               bodyPaymentLink + 
                bodyClose + 
                bodySignature;
     }
