@@ -3,6 +3,8 @@ public class TrainingReminderScheduledTest {
 
     @TestSetup
     static void setup() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        
         Contact contact1 = new Contact(FirstName = 'Trainer', LastName = 'Name', Email = 'test@test.com');
         Contact contact2 = new Contact(FirstName = 'Participant', LastName = 'Name', Email = 'test@test.com');
         List<Contact> contacts = new List<Contact> {contact1, contact2};
@@ -24,7 +26,7 @@ public class TrainingReminderScheduledTest {
     }
 
     @IsTest
-    static void execute_UnitTest() {    
+    static void execute_UnitTest() {
         TrainingReminderScheduled reminder = new TrainingReminderScheduled();
         Test.startTest();
         reminder.execute(null);
@@ -73,4 +75,5 @@ public class TrainingReminderScheduledTest {
         Assert.areEqual(expectedSize, trainings.size());
         Assert.areNotEqual(training.Name, trainings.get(0).Name);
     }
+
 }

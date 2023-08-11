@@ -3,6 +3,8 @@ public class RegistrationConfirmationQueueableTest {
 
     @TestSetup
     static void setup() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
         Contact contact1 = new Contact(FirstName = 'Trainer', LastName = 'Name', Email = 'e@mail.com');
         Contact contact2 = new Contact(FirstName = 'Participant', LastName = 'Name', Email = 'e@mail.com');
         List<Contact> contacts = new List<Contact> {contact1, contact2};
@@ -50,6 +52,32 @@ public class RegistrationConfirmationQueueableTest {
         Assert.areEqual('Completed', job.Status);
         Assert.areEqual('Queueable', job.JobType);
         Assert.areEqual('RegistrationConfirmationQueueable', job.ApexClass.Name);
+    }
+
+    @IsTest
+    static void parsePaymentLink_UnitTest_noPayer() {
+        String reponseBody = '{"payee":{"link":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
+        String expectedLink = PaymentLinkHttpCalloutMock.PAYMENT_LINK;
+
+        RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
+        Test.startTest();
+        String actualLink = q.parsePaymentLink(reponseBody);
+        Test.stopTest();
+
+        Assert.areNotEqual(expectedLink, actualLink);
+    }
+
+    @IsTest
+    static void parsePaymentLink_UnitTest_noLink() {
+        String reponseBody = '{"payer":{"lnk":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
+        String expectedLink = PaymentLinkHttpCalloutMock.PAYMENT_LINK;
+
+        RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
+        Test.startTest();
+        String actualLink = q.parsePaymentLink(reponseBody);
+        Test.stopTest();
+
+        Assert.areNotEqual(expectedLink, actualLink);
     }
 
 }

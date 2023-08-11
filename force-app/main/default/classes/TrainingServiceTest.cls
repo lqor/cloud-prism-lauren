@@ -14,8 +14,6 @@ public with sharing class TrainingServiceTest {
 
         TrainingCourse__c trainingCourse = new TrainingCourse__c(Name = 'Test Trigger Course');
         insert(trainingCourse);
-
-
     }
 
     @IsTest
@@ -90,7 +88,7 @@ public with sharing class TrainingServiceTest {
         List<Training__c> trainings = new List<Training__c> {training};
 
         TrainingService service = new TrainingService();
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();     
+        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
@@ -130,7 +128,7 @@ public with sharing class TrainingServiceTest {
         update training;
 
         TrainingService service = new TrainingService();
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();     
+        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
@@ -161,7 +159,7 @@ public with sharing class TrainingServiceTest {
         List<Training__c> trainings = new List<Training__c> {training};
 
         TrainingService service = new TrainingService();
-        TrainingDurationMetadata__mdt trainingDurationMetadata = service.queryTrainingDurationMetadata();     
+        TrainingDurationMetadata__mdt trainingDurationMetadata = service.queryTrainingDurationMetadata();
 
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
         Decimal trainingHoursPerDay = trainingDurationMetadata.TrainingHoursPerDay__c;
@@ -217,6 +215,8 @@ public with sharing class TrainingServiceTest {
 
     @IsTest
     static void updateCompletedTrainings_UnitTest() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        
         Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
