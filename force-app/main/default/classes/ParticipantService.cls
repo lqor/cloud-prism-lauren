@@ -21,8 +21,12 @@ public with sharing class ParticipantService {
             contactIds.add(participant.Contact__c);
         }
 
-        Map<Id, Training__c> trainings = new Map<Id, Training__c>(queryTrainingsWithParticipantsById(trainingIds));
-        Map<Id, Contact> contacts = new Map<Id, Contact>(queryContactsOfParticipantsById(contactIds));
+        Map<Id, Training__c> trainings = new Map<Id, Training__c>(
+            TrainingQueries.queryTrainingsWithParticipantsById(trainingIds)
+        );
+        Map<Id, Contact> contacts = new Map<Id, Contact>(
+            ParticipantQueries.queryContactsOfParticipantsById(contactIds)
+        );
 
         for(Participant__c participant : newList) {
             List<Participant__c> existingParticipants = trainings.get(participant.Training__c).Participants__r;
@@ -54,7 +58,7 @@ public with sharing class ParticipantService {
             trainingIds.add(participant.Training__c);
         }
 
-        List<Training__c> trainingsWithParticipants = queryTrainingsWithParticipantsById(trainingIds);
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsWithParticipantsById(trainingIds);
         trainingService.setRestaurantCommissionOnTrainings(trainingsWithParticipants, null);
 
         if(!trainingsWithParticipants.isEmpty()) {
@@ -79,34 +83,12 @@ public with sharing class ParticipantService {
             trainingIds.add(participant.Training__c);
         }
 
-        List<Training__c> trainingsWithParticipants = queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainingsWithParticipants = ParticipantQueries.queryTrainingsForNewParticipantsById(
+            trainingIds, 
+            participantIds
+        );
 
         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
-    }
-
-    public List<Training__c> queryTrainingsWithParticipantsById(Set<Id> ids) {
-        return [
-            SELECT Id, Restaurant__c, StartDate__c, EndDate__c, 
-                   (SELECT Id, Name, Training__c, Contact__c FROM Participants__r)
-            FROM Training__c 
-            WHERE Id IN :ids
-        ];
-    }
-
-    public List<Contact> queryContactsOfParticipantsById(Set<Id> ids) {
-        return [SELECT Id, CanBookForOthers__c FROM Contact WHERE Id IN :ids];
-    }
-
-    public List<Training__c> queryTrainingsForNewParticipantsById(Set<Id> trainingIds, Set<Id> participantIds) {
-        return [
-            SELECT Id, Name, StartDate__c, EndDate__c, TrainerContact__r.FirstName, TrainerContact__r.LastName, 
-                   TrainerContact__r.Email, TrainingCourse__r.Name,
-                   (SELECT Id, PaymentLink__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
-                   FROM Participants__r
-                   WHERE Id IN :participantIds)
-            FROM Training__c 
-            WHERE Id IN :trainingIds
-        ];
     }
 
 }

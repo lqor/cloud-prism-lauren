@@ -40,11 +40,7 @@ public with sharing class TrainingServiceTest {
         insert trainings;
         Test.stopTest();
 
-        List<Training__c> trainingsInserted = [
-            SELECT Id, RestaurantCommission__c 
-            FROM Training__c 
-            WHERE Id IN :trainings
-        ];
+        List<Training__c> trainingsInserted = [SELECT Id, RestaurantCommission__c FROM Training__c WHERE Id IN :trainings];
 
         Assert.areEqual(trainings.size(), trainingsInserted.size());
         for(Training__c result : trainingsInserted) {
@@ -57,7 +53,7 @@ public with sharing class TrainingServiceTest {
         Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today().addMonths(1);
         training.EndDate__c = System.today().addMonths(1);
@@ -66,12 +62,7 @@ public with sharing class TrainingServiceTest {
         insert training;
         Test.stopTest();
 
-        Training__c result = [
-            SELECT Id, RestaurantCommission__c 
-            FROM Training__c 
-            WHERE Id = :training.Id
-            LIMIT 1
-        ];
+        Training__c result = [SELECT Id, RestaurantCommission__c FROM Training__c WHERE Id = :training.Id LIMIT 1];
 
         Assert.areEqual(6.60, result.RestaurantCommission__c);
     }
@@ -81,18 +72,17 @@ public with sharing class TrainingServiceTest {
         Restaurant__c restaurant = [SELECT Id, CommissionRate__c, AverageMealCost__c FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today();
         training.EndDate__c = System.today();
         List<Training__c> trainings = new List<Training__c> {training};
 
-        TrainingService service = new TrainingService();
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
-        Decimal probabilityToBuy = restaurantCommissionMetadata.ProbabilityToBuyPerParticipant__c / 100;
+        Decimal probabilityToBuy = restaurantCommissionMdt.ProbabilityToBuyPerParticipant__c / 100;
         Decimal commissionRate = restaurant.CommissionRate__c / 100;
         Decimal averageMealCost = restaurant.AverageMealCost__c;
 
@@ -102,6 +92,7 @@ public with sharing class TrainingServiceTest {
                                                probabilityToBuy * 
                                                averageMealCost;
 
+        TrainingService service = new TrainingService();
         Test.startTest();
         service.setRestaurantCommissionOnTrainings(trainings, null);
         Test.stopTest();
@@ -115,7 +106,7 @@ public with sharing class TrainingServiceTest {
         Restaurant__c restaurant = [SELECT Id, CommissionRate__c, AverageMealCost__c FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today();
         training.EndDate__c = System.today();
@@ -127,12 +118,11 @@ public with sharing class TrainingServiceTest {
         trainings.get(0).EndDate__c = System.today().addDays(3);
         update training;
 
-        TrainingService service = new TrainingService();
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = service.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
-        Decimal probabilityToBuy = restaurantCommissionMetadata.ProbabilityToBuyPerParticipant__c / 100;
+        Decimal probabilityToBuy = restaurantCommissionMdt.ProbabilityToBuyPerParticipant__c / 100;
         Decimal commissionRate = restaurant.CommissionRate__c / 100;
         Decimal averageMealCost = restaurant.AverageMealCost__c;
 
@@ -142,6 +132,7 @@ public with sharing class TrainingServiceTest {
                                                probabilityToBuy * 
                                                averageMealCost;
 
+        TrainingService service = new TrainingService();
         Test.startTest();
         service.setRestaurantCommissionOnTrainings(trainings, null);
         Test.stopTest();
@@ -153,24 +144,24 @@ public with sharing class TrainingServiceTest {
     @IsTest
     static void setTrainingDurationOnTrainings_UnitTest() {
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.StartDate__c = System.today();
         training.EndDate__c = System.today().addDays(1);
         List<Training__c> trainings = new List<Training__c> {training};
 
-        TrainingService service = new TrainingService();
-        TrainingDurationMetadata__mdt trainingDurationMetadata = service.queryTrainingDurationMetadata();
+        TrainingDurationMetadata__mdt trainingDurationMdt = TrainingQueries.queryTrainingDurationMetadata();
 
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
-        Decimal trainingHoursPerDay = trainingDurationMetadata.TrainingHoursPerDay__c;
-        Decimal preparationTime = trainingDurationMetadata.PreparationTime__c;
-        Decimal reviewTime = trainingDurationMetadata.ReviewTime__c;
+        Decimal trainingHoursPerDay = trainingDurationMdt.TrainingHoursPerDay__c;
+        Decimal preparationTime = trainingDurationMdt.PreparationTime__c;
+        Decimal reviewTime = trainingDurationMdt.ReviewTime__c;
 
         Integer expectedTrainingDuration = numberOfDays * 
                                            (Integer) trainingHoursPerDay + 
                                            (Integer) preparationTime + 
                                            (Integer) reviewTime;
 
+        TrainingService service = new TrainingService();
         Test.startTest();
         service.setTrainingDurationOnTrainings(trainings, null);
         Test.stopTest();
@@ -220,7 +211,7 @@ public with sharing class TrainingServiceTest {
         Restaurant__c restaurant = [SELECT Id FROM Restaurant__c LIMIT 1];
 
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today();
         training.EndDate__c = System.today();
