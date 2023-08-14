@@ -8,7 +8,7 @@ public class RegistrationConfirmationQueueable implements Queueable, Database.Al
 
     /**
      * This method is part of the Participant registration confirmation process. It is called from the 
-     * "ParticipantService" class. It sends the confirmation emails and updates each participant with  
+     * "ParticipantService" class. It sends the confirmation emails and updates each participant with 
      * their unique payment link.
      */
     public void execute(QueueableContext context) {
@@ -32,30 +32,36 @@ public class RegistrationConfirmationQueueable implements Queueable, Database.Al
         if(!participantsToUpdate.isEmpty()){
             update participantsToUpdate;
         }
-
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is called from the 
-     * queueable class, "RegistrationConfirmationQueueable." It returns the payment link or an empty 
-     * string if the expected data is not found.
+     * This method is part of the Participant registration confirmation process. It is called from the queueable 
+     * class, "RegistrationConfirmationQueueable." It returns the payment link or an empty string if the expected 
+     * data is not found.
      * 
      * @param responseBody  JSON body of response from API call
      */
-    @TestVisible 
+    @TestVisible
     private String parsePaymentLink(String responseBody) {
-        Map<String, Object> paymentObject = (Map<String, Object>) JSON.deserializeUntyped(responseBody);
-        if(!paymentObject.containsKey('payer')) {
+        PaymentResponse paymentResponse = (PaymentResponse) JSON.deserialize(responseBody, PaymentResponse.class);
+
+        if(paymentResponse.payer == null) {
             return '';
         }
 
-        Map<String, Object> payer = (Map<String, Object>) paymentObject.get('payer');
-        if(!payer.containsKey('link')) {
+        if(paymentResponse.payer.link == null) {
             return '';
-            
         }
 
-        return (String) payer.get('link');
+        return paymentResponse.payer.link;
+    }
+
+    public class PaymentResponse {
+        public Payer payer;
+    }
+
+    public class Payer {
+        public String link;
     }
 
 }

@@ -39,8 +39,7 @@ public class RegistrationConfirmationQueueableTest {
         Set<Id> participantIds = new Set<Id>();
         participantIds.add(participant.Contact__c);
 
-        ParticipantService service = new ParticipantService();
-        List<Training__c> trainings = service.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainings = ParticipantQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
 
         Test.startTest();
         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
@@ -55,29 +54,29 @@ public class RegistrationConfirmationQueueableTest {
     }
 
     @IsTest
-    static void parsePaymentLink_UnitTest_noPayer() {
+    static void parsePaymentLink_UnitTest_noPayerKey() {
         String reponseBody = '{"payee":{"link":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
-        String expectedLink = PaymentLinkHttpCalloutMock.PAYMENT_LINK;
+        String expectedLink = '';
 
         RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
         Test.startTest();
         String actualLink = q.parsePaymentLink(reponseBody);
         Test.stopTest();
 
-        Assert.areNotEqual(expectedLink, actualLink);
+        Assert.areEqual(expectedLink, actualLink);
     }
 
     @IsTest
-    static void parsePaymentLink_UnitTest_noLink() {
+    static void parsePaymentLink_UnitTest_noLinkKey() {
         String reponseBody = '{"payer":{"lnk":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
-        String expectedLink = PaymentLinkHttpCalloutMock.PAYMENT_LINK;
+        String expectedLink = '';
 
         RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
         Test.startTest();
         String actualLink = q.parsePaymentLink(reponseBody);
         Test.stopTest();
 
-        Assert.areNotEqual(expectedLink, actualLink);
+        Assert.areEqual(expectedLink, actualLink);
     }
 
 }

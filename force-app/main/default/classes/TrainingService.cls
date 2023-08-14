@@ -17,10 +17,10 @@ public with sharing class TrainingService {
      */
     public void setRestaurantCommissionOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         Map<Id, Restaurant__c> restaurants = trainingRestaurants(newList);
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = queryRestaurantCommissionMetadata();     
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
 
         for(Training__c training : newList) {
-            Decimal commission = calculateCommissionOnTraining(training, restaurants, restaurantCommissionMetadata);
+            Decimal commission = calculateCommissionOnTraining(training, restaurants, restaurantCommissionMdt);
             training.RestaurantCommission__c = commission;
         }
     }
@@ -30,18 +30,18 @@ public with sharing class TrainingService {
      * called from the "TrainingService" class. It returns the Decimal value of the restaurant commission 
      * for a training.
      * 
-     * @param training                      Training, with or without participants
-     * @param restaurants                   Map of restaurants related to the trainings to be processed
-     * @param restaurantCommissionMetadata  Restaurant commission metadata
+     * @param training                  Training, with or without participants
+     * @param restaurants               Map of restaurants related to the trainings to be processed
+     * @param restaurantCommissionMdt   Restaurant commission metadata
      */
     private Decimal calculateCommissionOnTraining(
         Training__c training, 
         Map<Id, Restaurant__c> restaurants, 
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt
     ) {
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
-        Decimal probabilityToBuy = restaurantCommissionMetadata.ProbabilityToBuyPerParticipant__c / 100;
+        Decimal probabilityToBuy = restaurantCommissionMdt.ProbabilityToBuyPerParticipant__c / 100;
         Restaurant__c restaurant = restaurants.get(training.Restaurant__c);
         Decimal commissionRate = 1.00;
         Decimal averageMealCost = 1.00;
@@ -61,7 +61,7 @@ public with sharing class TrainingService {
             restaurantIds.add(training.Restaurant__c);
         }
 
-        return new Map<Id, Restaurant__c>(queryTrainingRestaurantsById(restaurantIds));
+        return new Map<Id, Restaurant__c>(TrainingQueries.queryTrainingRestaurantsById(restaurantIds));
     }
 
     /**
@@ -89,10 +89,10 @@ public with sharing class TrainingService {
             return;
         }
 
-        List<Training__c> trainingsWithParticipants = queryTrainingsWithParticipantsById(trainingIds);
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsWithParticipantsById(trainingIds);
         Map<Id, Training__c> trainingsWithParticipantsMap = new Map<Id, Training__c>(trainingsWithParticipants);
         Map<Id, Restaurant__c> restaurants = trainingRestaurants(trainingsWithParticipants);
-        RestaurantCommissionMetadata__mdt restaurantCommissionMetadata = queryRestaurantCommissionMetadata();     
+        RestaurantCommissionMetadata__mdt restaurantCommissionMtd = TrainingQueries.queryRestaurantCommissionMetadata();
 
         for(Training__c training : trainingsToProcess) {
             Training__c trainingWithParticipants = trainingsWithParticipantsMap.get(training.Id);
@@ -102,7 +102,7 @@ public with sharing class TrainingService {
             Decimal commission = calculateCommissionOnTraining(
                 trainingWithParticipants, 
                 restaurants, 
-                restaurantCommissionMetadata
+                restaurantCommissionMtd
             );
             
             training.RestaurantCommission__c = commission;
@@ -125,7 +125,7 @@ public with sharing class TrainingService {
      * @param oldMap    Old map of trainings or null
      */
     public void setTrainingDurationOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
-        TrainingDurationMetadata__mdt trainingDurationMetadata = queryTrainingDurationMetadata();
+        TrainingDurationMetadata__mdt trainingDurationMtd = TrainingQueries.queryTrainingDurationMetadata();
 
         for(Training__c training : newList) {
             if(oldMap != null) {
@@ -134,7 +134,7 @@ public with sharing class TrainingService {
                 }
             } 
 
-            Integer trainingDuration = calculateTrainingDuration(training, trainingDurationMetadata);
+            Integer trainingDuration = calculateTrainingDuration(training, trainingDurationMtd);
             training.TrainingDuration__c = trainingDuration;
         }
     }
@@ -151,17 +151,17 @@ public with sharing class TrainingService {
      * from the "TrainingService" class. It returns the Integer result of the training duration for a training 
      * session in hours.
      * 
-     * @param training                  Training
-     * @param trainingDurationMetadata  Training duration metadata
+     * @param training              Training
+     * @param trainingDurationMdt   Training duration metadata
      */
     private Integer calculateTrainingDuration(
         Training__c training, 
-        TrainingDurationMetadata__mdt trainingDurationMetadata
+        TrainingDurationMetadata__mdt trainingDurationMdt
     ) {
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
-        Decimal trainingHoursPerDay = trainingDurationMetadata.TrainingHoursPerDay__c;
-        Decimal preparationTime = trainingDurationMetadata.PreparationTime__c;
-        Decimal reviewTime = trainingDurationMetadata.ReviewTime__c;
+        Decimal trainingHoursPerDay = trainingDurationMdt.TrainingHoursPerDay__c;
+        Decimal preparationTime = trainingDurationMdt.PreparationTime__c;
+        Decimal reviewTime = trainingDurationMdt.ReviewTime__c;
 
         return numberOfDays * (Integer) trainingHoursPerDay + (Integer) preparationTime + (Integer) reviewTime;
     } 
@@ -283,7 +283,7 @@ public with sharing class TrainingService {
 
     private void updateParticipantStatus(List<Training__c> trainings) {
         List<Participant__c> participantsToUpdate = new List<Participant__c>();
-        List<Participant__c> participants = queryParticipantsByTrainingAndStatus(trainings);
+        List<Participant__c> participants = TrainingQueries.queryParticipantsByTrainingAndStatus(trainings);
 
         for(Participant__c participant : participants) {
             participant.Status__c = ParticipantService.PARTICIPANT_STATUS_PARTICIPATED;
@@ -293,39 +293,6 @@ public with sharing class TrainingService {
         if(!participantsToUpdate.isEmpty()) {
             update participantsToUpdate;
         }
-    }
-
-    public List<Restaurant__c> queryTrainingRestaurantsById(Set<Id> ids) {
-        return [SELECT Id, Name, AverageMealCost__c, CommissionRate__c FROM Restaurant__c WHERE Id IN :ids];
-    }
-
-    public RestaurantCommissionMetadata__mdt queryRestaurantCommissionMetadata() {
-       return [SELECT ProbabilityToBuyPerParticipant__c FROM RestaurantCommissionMetadata__mdt LIMIT 1];
-    }
-
-    public List<Training__c> queryTrainingsWithParticipantsById(Set<Id> ids) {
-        return [
-            SELECT Id, Restaurant__c, StartDate__c, EndDate__c, 
-                   (SELECT Id, Name, Training__c, Contact__c FROM Participants__r)
-            FROM Training__c 
-            WHERE Id IN :ids
-        ];
-    }
-
-    public TrainingDurationMetadata__mdt queryTrainingDurationMetadata() {
-        return [
-            SELECT PreparationTime__c, ReviewTime__c, TrainingHoursPerDay__c 
-            FROM TrainingDurationMetadata__mdt 
-            LIMIT 1
-        ];
-     }
- 
-     public List<Participant__c> queryParticipantsByTrainingAndStatus(List<Training__c> trainings) {
-        return [
-            SELECT Id, Name, Status__c, Training__c
-            FROM Participant__c
-            WHERE Training__c IN :trainings AND Status__c != :ParticipantService.PARTICIPANT_STATUS_PARTICIPATED
-        ];
     }
 
 }

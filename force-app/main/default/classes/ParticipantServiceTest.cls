@@ -162,9 +162,8 @@ public with sharing class ParticipantServiceTest {
         Set<Id> trainingIds = new Set<Id>();
         trainingIds.add(training.Id);
 
-        ParticipantService service = new ParticipantService();
         Test.startTest();
-        List<Training__c> trainings = service.queryTrainingsWithParticipantsById(trainingIds);
+        List<Training__c> trainings = TrainingQueries.queryTrainingsWithParticipantsById(trainingIds);
         Test.stopTest();
 
         Training__c result = trainings.get(0);
@@ -189,9 +188,8 @@ public with sharing class ParticipantServiceTest {
         Set<Id> contactIds = new Set<Id>();
         contactIds.add(newParticipant.Contact__c);
 
-        ParticipantService service = new ParticipantService();
         Test.startTest();
-        List<Contact> contacts = service.queryContactsOfParticipantsById(contactIds);
+        List<Contact> contacts = ParticipantQueries.queryContactsOfParticipantsById(contactIds);
         Test.stopTest();
 
         Contact result = contacts.get(0);
@@ -218,9 +216,8 @@ public with sharing class ParticipantServiceTest {
         Set<Id> participantIds = new Set<Id>();
         participantIds.add(newParticipant.Id);
 
-        ParticipantService service = new ParticipantService();
         Test.startTest();
-        List<Training__c> trainings = service.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainings = ParticipantQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
         Test.stopTest();
 
         Training__c result = trainings.get(0);

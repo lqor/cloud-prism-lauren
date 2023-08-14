@@ -3,7 +3,7 @@
     <HTML>
       <body>
         <p>Dear {!recipient.FirstName},</p>
-        <p>This is an automatic reminder for the upcoming <b>{!relatedTo.Training__r.Name}</b> training on {!relatedTo.Training__r.StartDate__c} through {!relatedTo.Training__r.StartDate__c}.</p>
+        <p>This is an automatic reminder for the upcoming <b>{!relatedTo.Training__r.Name}</b> training on {!relatedTo.Training__r.StartDate__c} through {!relatedTo.Training__r.EndDate__c}.</p>
         <p>Best regards,<br/><br/>Training Reminder</p>
       </body>
     </html>
