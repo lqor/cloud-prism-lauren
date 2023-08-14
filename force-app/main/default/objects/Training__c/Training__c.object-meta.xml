@@ -141,7 +141,7 @@
         <type>Default</type>
     </actionOverrides>
     <allowInChatterGroups>true</allowInChatterGroups>
-    <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
+    <compactLayoutAssignment>TrainingCompactLayout</compactLayoutAssignment>
     <deploymentStatus>Deployed</deploymentStatus>
     <description>The training event</description>
     <enableActivities>true</enableActivities>
@@ -161,7 +161,16 @@
         <type>Text</type>
     </nameField>
     <pluralLabel>Trainings</pluralLabel>
-    <searchLayouts></searchLayouts>
+    <searchLayouts>
+        <searchResultsAdditionalFields>Status__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>StartDate__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>EndDate__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>CompletionDate__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Restaurant__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>RestaurantCommission__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>TrainingDuration__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>UniqueId__c</searchResultsAdditionalFields>
+    </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>
