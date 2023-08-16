@@ -8,9 +8,13 @@ public with sharing class SendParticipantToERP {
      * @param participantIds    List of ids for participants to save to ERP system
      */
     @InvocableMethod
-    public static void sendParticipantsToERP(List<Id> participantIds){
+    public static List<String> sendParticipantsToERP(List<Id> participantIds){
         List<Participant__c> participantsToUpdate = new List<Participant__c>();
-        List<Participant__c> participants = ParticipantQueries.queryParticipantsById(participantIds);
+        List<Participant__c> participants = ParticipantQueries.queryParticipantsByIdAndNoErpId(participantIds);
+
+        if(participants.isEmpty()) {
+            return new List<String>{'This participant has already been synced to the ERP system.'};
+        }
 
         for(Participant__c participant : participants) {
             String participantJSON = JSON.serialize(participant);
@@ -21,6 +25,8 @@ public with sharing class SendParticipantToERP {
         if(!participantsToUpdate.isEmpty()){
             update participantsToUpdate;
         }
+
+        return new List<String>{'You\'re all set! The participant is saved to the ERP system.'};
     }
 
     /**
@@ -30,7 +36,7 @@ public with sharing class SendParticipantToERP {
      * @param responseBody  JSON body of response from API call
      */
     @TestVisible
-    private static String parseErpId(String responseBody) {
+    public static String parseErpId(String responseBody) {
         ErpResponse erpResponse = (ErpResponse) JSON.deserialize(responseBody, ErpResponse.class);
 
         if(erpResponse.erpId == null) {

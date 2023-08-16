@@ -4,6 +4,8 @@
     <columns>NAME</columns>
     <columns>Status__c</columns>
     <columns>Training__c</columns>
+    <columns>ErpId__c</columns>
+    <columns>PaymentLink__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

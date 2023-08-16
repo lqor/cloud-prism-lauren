@@ -8,7 +8,7 @@ public class TrainingReminderScheduled implements Schedulable {
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
         Date threeDaysFromToday = System.today().addDays(3);
 
-        List<Training__c> trainings = queryTrainingsWithParticipantsByIdAndDate(threeDaysFromToday);
+        List<Training__c> trainings = TrainingQueries.queryTrainingsWithParticipantsByIdAndDate(threeDaysFromToday);
 
         for(Training__c training : trainings) {
             Messaging.SingleEmailMessage trainerEmail = EmailService.createTrainerReminderEmail(training);
@@ -28,18 +28,6 @@ public class TrainingReminderScheduled implements Schedulable {
         if(!emails.isEmpty()) {
             Messaging.sendEmail(emails);
         }
-    }
-
-    public List<Training__c> queryTrainingsWithParticipantsByIdAndDate(Date threeDaysFromToday) {
-        return [
-            SELECT Id, Name, StartDate__c, EndDate__c, TrainerContact__r.FirstName, TrainerContact__r.LastName, 
-                   TrainerContact__r.Email, TrainingCourse__r.Name,
-                   (SELECT Id, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email FROM Participants__r)
-            FROM Training__c 
-            WHERE Id IN (SELECT Training__c FROM Participant__c) AND 
-                  DAY_ONLY(convertTimezone(StartDate__c)) = :threeDaysFromToday AND
-                  Status__c = :TrainingService.TRAINING_STATUS_SCHEDULED 
-        ];
     }
 
 }
