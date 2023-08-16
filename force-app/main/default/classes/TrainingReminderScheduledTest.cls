@@ -67,9 +67,7 @@ public class TrainingReminderScheduledTest {
 
         Date inThreeDays = System.today().addDays(daysToAdd);
         Test.startTest();
-        List<Training__c> trainings = new TrainingReminderScheduled().queryTrainingsWithParticipantsByIdAndDate(
-            inThreeDays
-        );
+        List<Training__c> trainings = TrainingQueries.queryTrainingsWithParticipantsByIdAndDate(inThreeDays);
         Test.stopTest();
 
         Assert.areEqual(expectedSize, trainings.size());

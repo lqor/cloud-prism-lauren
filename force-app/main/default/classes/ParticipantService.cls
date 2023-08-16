@@ -25,7 +25,7 @@ public with sharing class ParticipantService {
             TrainingQueries.queryTrainingsWithParticipantsById(trainingIds)
         );
         Map<Id, Contact> contacts = new Map<Id, Contact>(
-            ParticipantQueries.queryContactsOfParticipantsById(contactIds)
+            ContactQueries.queryContactsOfParticipantsById(contactIds)
         );
 
         for(Participant__c participant : newList) {
@@ -83,7 +83,7 @@ public with sharing class ParticipantService {
             trainingIds.add(participant.Training__c);
         }
 
-        List<Training__c> trainingsWithParticipants = ParticipantQueries.queryTrainingsForNewParticipantsById(
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsById(
             trainingIds, 
             participantIds
         );

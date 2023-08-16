@@ -12,7 +12,7 @@ public with sharing class ParticipantServiceTest {
         insert restaurant;
 
         Training__c training = new Training__c();
-        training.Name = 'Test Trigger Training ';
+        training.Name = 'Test Trigger Training';
         training.Restaurant__c = restaurant.Id;
         training.StartDate__c = System.today().addMonths(1);
         training.EndDate__c = System.today().addMonths(1);
@@ -189,7 +189,7 @@ public with sharing class ParticipantServiceTest {
         contactIds.add(newParticipant.Contact__c);
 
         Test.startTest();
-        List<Contact> contacts = ParticipantQueries.queryContactsOfParticipantsById(contactIds);
+        List<Contact> contacts = ContactQueries.queryContactsOfParticipantsById(contactIds);
         Test.stopTest();
 
         Contact result = contacts.get(0);
@@ -217,7 +217,7 @@ public with sharing class ParticipantServiceTest {
         participantIds.add(newParticipant.Id);
 
         Test.startTest();
-        List<Training__c> trainings = ParticipantQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
         Test.stopTest();
 
         Training__c result = trainings.get(0);

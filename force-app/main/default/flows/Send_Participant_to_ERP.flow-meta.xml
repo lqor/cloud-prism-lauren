@@ -8,7 +8,7 @@
         <actionName>SendParticipantToERP</actionName>
         <actionType>apex</actionType>
         <connector>
-            <targetReference>Confirmation</targetReference>
+            <targetReference>ShowConfirmationMessage</targetReference>
         </connector>
         <faultConnector>
             <targetReference>ShowErrorMessage</targetReference>
@@ -20,6 +20,7 @@
                 <elementReference>recordId</elementReference>
             </value>
         </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
     </actionCalls>
     <apiVersion>58.0</apiVersion>
     <environments>Default</environments>
@@ -45,8 +46,8 @@
     </processMetadataValues>
     <processType>Flow</processType>
     <screens>
-        <name>Confirmation</name>
-        <label>Confirmation</label>
+        <name>ShowConfirmationMessage</name>
+        <label>Show Confirmation Message</label>
         <locationX>776</locationX>
         <locationY>290</locationY>
         <allowBack>false</allowBack>
@@ -54,7 +55,7 @@
         <allowPause>false</allowPause>
         <fields>
             <name>ConfirmationHeading</name>
-            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;You&apos;re all set! The participant is saved.&lt;/span&gt;&lt;/p&gt;</fieldText>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;{!SendParticipant}&lt;/span&gt;&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
         <showFooter>true</showFooter>
@@ -69,8 +70,8 @@
         <allowFinish>true</allowFinish>
         <allowPause>false</allowPause>
         <fields>
-            <name>Copy_1_of_ConfirmationHeading</name>
-            <fieldText>&lt;p&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;There was an error syncing this participant to the ERP system.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;{!$Flow.FaultMessage}&lt;/span&gt;&lt;/p&gt;</fieldText>
+            <name>ErrorHeading</name>
+            <fieldText>&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;There was an error syncing this participant to the ERP system.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;{!$Flow.FaultMessage}&lt;/span&gt;&lt;/p&gt;</fieldText>
             <fieldType>DisplayText</fieldType>
         </fields>
         <showFooter>true</showFooter>

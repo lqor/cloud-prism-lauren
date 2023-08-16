@@ -35,6 +35,25 @@ public with sharing class SendParticipantToERPTest {
     }
 
     @IsTest
+    static void sendParticipantsToERP_UnitTest_preventDuplicateParticipantSync() {
+        Test.setMock(HttpCalloutMock.class, new ERPCalloutHttpCalloutMock());
+
+        Participant__c participant = [SELECT Id, ErpId__c FROM Participant__c LIMIT 1];
+        participant.ErpId__c = 'not-99';
+        update participant;
+
+        Participant__c syncedParticipant = [SELECT Id FROM Participant__c LIMIT 1];
+        List<Id> syncedParticipantIds = new List<Id> {syncedParticipant.Id};
+
+        Test.startTest();
+        SendParticipantToERP.sendParticipantsToERP(syncedParticipantIds);
+        Test.stopTest();
+
+        Participant__c updatedParticipant = [SELECT Id, ErpId__c FROM Participant__c LIMIT 1];
+        Assert.areNotEqual(ERPCalloutHttpCalloutMock.ERP_ID, updatedParticipant.ErpId__c);
+    }
+
+    @IsTest
     static void parseErpId_UnitTest() {
         String reponseBody = '{"erpId":"' + ERPCalloutHttpCalloutMock.ERP_ID + '"}';
         String expectedId = ERPCalloutHttpCalloutMock.ERP_ID;

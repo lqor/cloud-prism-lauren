@@ -104,7 +104,7 @@ public with sharing class TrainingService {
                 restaurants, 
                 restaurantCommissionMtd
             );
-            
+
             training.RestaurantCommission__c = commission;
         }
     }
@@ -132,7 +132,7 @@ public with sharing class TrainingService {
                 if(isTrainingStartEndDateUnchanged(training, oldMap)) {
                     break;
                 }
-            } 
+            }
 
             Integer trainingDuration = calculateTrainingDuration(training, trainingDurationMtd);
             training.TrainingDuration__c = trainingDuration;
@@ -144,7 +144,7 @@ public with sharing class TrainingService {
         Boolean isEndDateSame = training.EndDate__c == oldMap.get(training.Id).EndDate__c;
 
         return isStartDateSame && isEndDateSame;
-    }    
+    }
 
     /**
      * This method contains the logic of the Training training duration calculation process. It is called 
@@ -164,7 +164,7 @@ public with sharing class TrainingService {
         Decimal reviewTime = trainingDurationMdt.ReviewTime__c;
 
         return numberOfDays * (Integer) trainingHoursPerDay + (Integer) preparationTime + (Integer) reviewTime;
-    } 
+    }
 
     /**
      * This method is part of the Training unique id generation process. It is called from the trigger 
@@ -180,7 +180,7 @@ public with sharing class TrainingService {
                 if(isTrainingNameStartDateUnchanged(training, oldMap)) {
                     break;
                 }
-            } 
+            }
 
             training.UniqueId__c = generateUniqueId(training);
         }
@@ -191,7 +191,7 @@ public with sharing class TrainingService {
         Boolean isStartDateSame = training.StartDate__c == oldMap.get(training.Id).StartDate__c;
 
         return isNameSame && isStartDateSame;
-    }  
+    }
 
     /**
      * This method contains the logic of the Training unique id generation process. It is called from the 
@@ -217,7 +217,7 @@ public with sharing class TrainingService {
         }
 
         return nameInitials + startDate;
-    } 
+    }
 
     /**
      * This method is part of the Training organization process. It is called from the trigger handler class, 
@@ -279,11 +279,11 @@ public with sharing class TrainingService {
         Boolean wasStatusNotFinished = oldMap.get(training.Id).Status__c != TRAINING_STATUS_FINISHED;
 
         return isStatusFinished && wasStatusNotFinished;
-    }  
+    }
 
     private void updateParticipantStatus(List<Training__c> trainings) {
         List<Participant__c> participantsToUpdate = new List<Participant__c>();
-        List<Participant__c> participants = TrainingQueries.queryParticipantsByTrainingAndStatus(trainings);
+        List<Participant__c> participants = ParticipantQueries.queryParticipantsByTrainingAndStatus(trainings);
 
         for(Participant__c participant : participants) {
             participant.Status__c = ParticipantService.PARTICIPANT_STATUS_PARTICIPATED;
