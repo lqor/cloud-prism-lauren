@@ -138,10 +138,10 @@ public class AccountService extends SObjectService implements SObjectServiceInte
     }
     
     public void updateAccountsWithContacts() {
-        List<Account> accounts = [SELECT Id, Description FROM Account];
+        List<Account> accounts = AccountQueries.queryAccounts();
         Set<Id> accountIds = (new Map<Id, Account> (accounts)).keySet();
         
-        List<Contact> relatedContacts = [SELECT Name, AccountId FROM Contact WHERE AccountId IN :accountIds];
+        List<Contact> relatedContacts = ContactQueries.queryContactsByAccountIds(accountIds);
         
         Map<String, List<Contact>> contactMap = new Map<String, List<Contact>>();
         
