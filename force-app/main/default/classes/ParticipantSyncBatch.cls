@@ -1,5 +1,8 @@
 global with sharing class ParticipantSyncBatch implements Database.Batchable<sObject>, Database.AllowsCallouts {
 
+    global virtual class ParticipantSyncBatchException extends Exception {}
+    global class ERPCalloutException extends ParticipantSyncBatchException {}
+
     private String objName;
 
     global ParticipantSyncBatch(String objName) {
@@ -7,7 +10,7 @@ global with sharing class ParticipantSyncBatch implements Database.Batchable<sOb
     }
 
     global Database.QueryLocator start(Database.BatchableContext bc) {
-        return Database.getQueryLocator('SELECT Id, Name, Status__c, ErpId__c FROM ' + objName +' WHERE ErpId__c = null');
+        return Database.getQueryLocator('SELECT Id, Name, Status__c, ErpId__c FROM ' + objName + ' WHERE ErpId__c = null');
     }
 
     /**
@@ -19,8 +22,25 @@ global with sharing class ParticipantSyncBatch implements Database.Batchable<sOb
         List<Participant__c> participantsToUpdate = new List<Participant__c>();
 
         for(Participant__c participant : participants) {
+            Logger logger = new Logger();
             String participantJSON = JSON.serialize(participant);
-            participant.ErpId__c = SendParticipantToERP.parseErpId(ERPCallout.doERPCalloutForParticipant(participantJSON));
+            String responseBody = '';
+            String erpId = '';
+
+            try {
+                responseBody = ERPCallout.doERPCalloutForParticipant(participantJSON);
+                erpId = SendParticipantToERP.parseErpId(responseBody);
+                
+                if(responseBody == '') {
+                    throw new ERPCalloutException();
+                }
+            } catch(ERPCalloutException c) {
+                logger.logException(c);
+            } catch(Exception e) {
+                logger.logException(e);
+            }
+
+            participant.ErpId__c = erpId;
             participantsToUpdate.add(participant);
         }
 

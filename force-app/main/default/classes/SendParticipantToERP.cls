@@ -1,5 +1,8 @@
 public with sharing class SendParticipantToERP {
 
+    public virtual class SendParticipantToERPException extends Exception {}
+    public class ERPCalloutException extends SendParticipantToERPException {}
+
     /**
      * This method is part of the Participant to ERP syncing process. It is called from an invocable action 
      * in the "Send Participant to ERP" flow. It sends the API request to add the participant to the ERP 
@@ -13,12 +16,29 @@ public with sharing class SendParticipantToERP {
         List<Participant__c> participants = ParticipantQueries.queryParticipantsByIdAndNoErpId(participantIds);
 
         if(participants.isEmpty()) {
-            return new List<String>{'This participant has already been synced to the ERP system.'};
+            return new List<String>{'This participant is already synced to the ERP system.'};
         }
 
         for(Participant__c participant : participants) {
+            Logger logger = new Logger();
             String participantJSON = JSON.serialize(participant);
-            participant.ErpId__c = parseErpId(ERPCallout.doERPCalloutForParticipant(participantJSON));
+            String responseBody = '';
+            String erpId = '';
+
+            try {
+                responseBody = ERPCallout.doERPCalloutForParticipant(participantJSON);
+                erpId = parseErpId(responseBody);
+
+                if(responseBody == '') {
+                    throw new ERPCalloutException();
+                }
+            } catch(ERPCalloutException c) {
+                logger.logException(c);
+            } catch(Exception e) {
+                logger.logException(e);
+            }
+
+            participant.ErpId__c = erpId;
             participantsToUpdate.add(participant);
         }
 
@@ -31,11 +51,11 @@ public with sharing class SendParticipantToERP {
 
     /**
      * This method is part of the Participant to ERP syncing process. It is called from the "SendParticipantToERP" 
-     * class. It returns the ERP Id if the save was successful or an empty string if not.
+     * class and the batchable class, "ParticipantSyncBatch." It returns the ERP Id if the save was successful or 
+     * an empty string if not.
      * 
      * @param responseBody  JSON body of response from API call
      */
-    @TestVisible
     public static String parseErpId(String responseBody) {
         ErpResponse erpResponse = (ErpResponse) JSON.deserialize(responseBody, ErpResponse.class);
 
