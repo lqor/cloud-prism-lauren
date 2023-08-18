@@ -17,7 +17,8 @@ public with sharing class TrainingService {
      */
     public void setRestaurantCommissionOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
         Map<Id, Restaurant__c> restaurants = trainingRestaurants(newList);
-        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = 
+            RestaurantCommissionMetadataQueries.queryRestaurantCommissionMetadata();
 
         for(Training__c training : newList) {
             Decimal commission = calculateCommissionOnTraining(training, restaurants, restaurantCommissionMdt);
@@ -61,7 +62,7 @@ public with sharing class TrainingService {
             restaurantIds.add(training.Restaurant__c);
         }
 
-        return new Map<Id, Restaurant__c>(TrainingQueries.queryTrainingRestaurantsById(restaurantIds));
+        return new Map<Id, Restaurant__c>(RestaurantQueries.queryTrainingRestaurantsById(restaurantIds));
     }
 
     /**
@@ -92,7 +93,8 @@ public with sharing class TrainingService {
         List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsWithParticipantsById(trainingIds);
         Map<Id, Training__c> trainingsWithParticipantsMap = new Map<Id, Training__c>(trainingsWithParticipants);
         Map<Id, Restaurant__c> restaurants = trainingRestaurants(trainingsWithParticipants);
-        RestaurantCommissionMetadata__mdt restaurantCommissionMtd = TrainingQueries.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMtd = 
+            RestaurantCommissionMetadataQueries.queryRestaurantCommissionMetadata();
 
         for(Training__c training : trainingsToProcess) {
             Training__c trainingWithParticipants = trainingsWithParticipantsMap.get(training.Id);
@@ -125,7 +127,7 @@ public with sharing class TrainingService {
      * @param oldMap    Old map of trainings or null
      */
     public void setTrainingDurationOnTrainings(List<Training__c> newList, Map<Id, Training__c> oldMap) {
-        TrainingDurationMetadata__mdt trainingDurationMtd = TrainingQueries.queryTrainingDurationMetadata();
+        TrainingDurationMetadata__mdt trainingDurationMtd = TrainingDurationMetadataQueries.queryTrainingDurationMetadata();
 
         for(Training__c training : newList) {
             if(oldMap != null) {

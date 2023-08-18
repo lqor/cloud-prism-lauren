@@ -78,7 +78,8 @@ public with sharing class TrainingServiceTest {
         training.EndDate__c = System.today();
         List<Training__c> trainings = new List<Training__c> {training};
 
-        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = 
+            RestaurantCommissionMetadataQueries.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
@@ -118,7 +119,8 @@ public with sharing class TrainingServiceTest {
         trainings.get(0).EndDate__c = System.today().addDays(3);
         update training;
 
-        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = TrainingQueries.queryRestaurantCommissionMetadata();
+        RestaurantCommissionMetadata__mdt restaurantCommissionMdt = 
+            RestaurantCommissionMetadataQueries.queryRestaurantCommissionMetadata();
 
         Integer numberOfParticipants = training.Participants__r.isEmpty() ? 1 : training.Participants__r.size();
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
@@ -149,7 +151,7 @@ public with sharing class TrainingServiceTest {
         training.EndDate__c = System.today().addDays(1);
         List<Training__c> trainings = new List<Training__c> {training};
 
-        TrainingDurationMetadata__mdt trainingDurationMdt = TrainingQueries.queryTrainingDurationMetadata();
+        TrainingDurationMetadata__mdt trainingDurationMdt = TrainingDurationMetadataQueries.queryTrainingDurationMetadata();
 
         Integer numberOfDays = training.StartDate__c.Date().daysBetween(training.EndDate__c.Date()) + 1;
         Decimal trainingHoursPerDay = trainingDurationMdt.TrainingHoursPerDay__c;
