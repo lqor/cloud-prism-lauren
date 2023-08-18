@@ -10,7 +10,9 @@ global with sharing class ParticipantSyncBatch implements Database.Batchable<sOb
     }
 
     global Database.QueryLocator start(Database.BatchableContext bc) {
-        return Database.getQueryLocator('SELECT Id, Name, Status__c, ErpId__c FROM ' + objName + ' WHERE ErpId__c = null');
+        return Database.getQueryLocator(
+            'SELECT Id, Name, Status__c, ErpId__c FROM ' + objName + ' WHERE ErpId__c = null'
+        );
     }
 
     /**
