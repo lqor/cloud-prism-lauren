@@ -1,5 +1,8 @@
 public class RegistrationConfirmationQueueable implements Queueable, Database.AllowsCallouts {
 
+    public virtual class RegistrationConfirmationQueueableException extends Exception {}
+    public class PaymentLinkCalloutException extends RegistrationConfirmationQueueableException {}
+
     private List<Training__c> trainings;
 
     public RegistrationConfirmationQueueable(List<Training__c> trainings) {
@@ -17,8 +20,24 @@ public class RegistrationConfirmationQueueable implements Queueable, Database.Al
 
         for(Training__c training : trainings) {
             for(Participant__c participant : training.Participants__r) {
-                String responseBody = PaymentLinkCallout.doPaymentCalloutForParticipant(participant);
-                participant.PaymentLink__c = parsePaymentLink(responseBody);
+                Logger logger = new Logger();
+                String responseBody = '';
+                String link = '';
+
+                try {
+                    responseBody = PaymentLinkCallout.doPaymentCalloutForParticipant(participant);
+                    link = parsePaymentLink(responseBody);
+
+                    if(responseBody == '') {
+                        throw new PaymentLinkCalloutException();
+                    }
+                } catch(PaymentLinkCalloutException p) {
+                    logger.logException(p);
+                } catch(Exception e) {
+                    logger.logException(e);
+                }
+
+                participant.PaymentLink__c = link;
                 participantsToUpdate.add(participant);
 
                 emails.add(EmailService.createParticipantConfirmationEmail(training, participant));
