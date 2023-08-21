@@ -2,7 +2,7 @@ public with sharing class TrainingQueries {
 
     public static List<Training__c> queryTrainingsWithParticipantsById(Set<Id> trainingIds) {
         return [
-            SELECT Id, Restaurant__c, StartDate__c, EndDate__c, 
+            SELECT Id, Restaurant__c, StartDate__c, EndDate__c, NumberOfParticipants__c, 
                    (SELECT Id, Name, Training__c, Contact__c FROM Participants__r)
             FROM Training__c 
             WHERE Id IN :trainingIds

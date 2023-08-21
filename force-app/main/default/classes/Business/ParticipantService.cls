@@ -91,4 +91,29 @@ public with sharing class ParticipantService {
         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
     }
 
+    /**
+     * This method is part of the Training roll-up summary of participants. It is called from the trigger 
+     * handler class, "ParticipantTriggerHandler." It counts participants and updates the field on trainings.
+     * 
+     * @param newlist   List of participants
+     * @param oldMap    Old map of participants, always null
+     */
+    public void countNumberOfParticipantsInTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
+        Set<Id> trainingIds = new Set<Id>();
+
+        for(Participant__c participant : newList) {
+            trainingIds.add(participant.Training__c);
+        }
+
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsWithParticipantsById(trainingIds);
+
+        for(Training__c training : trainingsWithParticipants) {
+            training.NumberOfParticipants__c = training.Participants__r.size();
+        }
+
+        if(!trainingsWithParticipants.isEmpty()) {
+            update trainingsWithParticipants;
+        }
+    }
+
 }
