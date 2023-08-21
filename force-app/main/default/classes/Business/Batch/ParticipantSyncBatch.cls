@@ -9,6 +9,10 @@ global with sharing class ParticipantSyncBatch implements Database.Batchable<sOb
         this.objName = objName;
     }
 
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator('SELECT Id, Name, Status__c, ErpId__c FROM ' + objName + ' WHERE ErpId__c = null');
+    }
+
     /**
      * This method is part of the Participant to ERP syncing process. It is called from the scheduled class,
      * "ParticipantSyncScheduled." It sends the API request to add the participants in the batch to the ERP 
