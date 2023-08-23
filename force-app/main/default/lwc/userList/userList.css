@@ -1,0 +1,16 @@
+div {
+    background-color: white;
+    width: 80%;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+tr:hover {
+    background-color: #e7f5f8;
+}
+
+ul {
+    list-style-type: "- ";
+}

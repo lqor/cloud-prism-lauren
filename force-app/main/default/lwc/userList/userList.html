@@ -1,0 +1,64 @@
+<template>
+    <div class="slds-tabs_card">
+        <div class="slds-text-title_bold slds-p-bottom_small">Salesforce User Directory</div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="slds-p-around_x-small">Name</th>
+                    <th class="slds-p-around_x-small">Title</th>
+                    <th class="slds-p-around_x-small">Username</th>
+                    <th class="slds-p-around_x-small">Phone</th>
+                    <th class="slds-p-around_x-small">Department</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={users} for:item="user">
+                    <tr key={user.Id}>
+                        <td class="slds-p-around_x-small" key={user.Id}>{user.Name}</td>
+                        <td class="slds-p-around_x-small" key={user.Id}>{user.Title}</td>
+                        <td class="slds-p-around_x-small" key={user.Id}>{user.Username}</td>
+                        <td class="slds-p-around_x-small" key={user.Id}>{user.Phone}</td>
+                        <td class="slds-p-around_x-small" key={user.Id}>{user.Department}</td>
+                    </tr>
+                </template>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="slds-p-around_x-small" key={user.Id} colspan='5'>Total Users: {users.length}</td>
+                </tr>
+            </tfoot>
+        </table>
+        <br>
+
+        <div class="slds-text-title_bold slds-p-bottom_small">Unique Departments in the Company</div>
+        <ul class="slds-p-left_small">
+            <template for:each={departments} for:item="department">
+                <li key={department.Id}>{department.Name}</li>
+            </template>
+        </ul>
+        <br>
+
+        <lightning-record-edit-form object-api-name="Contact" onsubmit={handleSubmit}>
+            <lightning-messages> </lightning-messages>
+            <lightning-input-field field-name="Name"> </lightning-input-field>
+            <lightning-input-field field-name="Title"> </lightning-input-field>
+            <lightning-input-field field-name="Email"> </lightning-input-field>
+            <lightning-input-field field-name="Phone"> </lightning-input-field>
+            <lightning-input-field field-name="Department"> </lightning-input-field>
+            <div class="slds-m-top_medium">
+                <lightning-button
+                    class="slds-m-top_small"
+                    label="Cancel"
+                    onclick={handleReset}
+                ></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    class="slds-m-top_small"
+                    type="submit"
+                    label="Save"
+                ></lightning-button>
+            </div>
+        </lightning-record-edit-form>
+
+    </div>
+</template>
