@@ -20,7 +20,6 @@ export default class UserList extends LightningElement {
 
     connectedCallback() {
         this.loadUsers();
-        console.log('connectedCallback ' + JSON.stringify(this.users));
     }
 
     get numberOfUsers() {
@@ -33,13 +32,13 @@ export default class UserList extends LightningElement {
 
     handleClick(event) {
         event.preventDefault();
-
         const fields = event.detail.fields;
+
         const newUser = {
             Id: this.numberOfUsers + 1,
             Name: fields.FirstName + ' ' + fields.LastName,
             Title: fields.Title,
-            Username: fields.Email,
+            Email: fields.Email,
             Phone: fields.Phone,
             Department: fields.Department
         };
