@@ -1,136 +1,42 @@
-import { LightningElement, track } from 'lwc';
+import { LightningElement, track, api } from 'lwc';
+import getUsers from '@salesforce/apex/UserTableController.getUsers';
+
+import NAME from '@salesforce/schema/User.Name';
+import EMAIL from '@salesforce/schema/User.Email';
+import PHONE from '@salesforce/schema/User.Phone';
+import DEPARTMENT from '@salesforce/schema/User.Department';
+import TITLE from '@salesforce/schema/User.Title';
+import CONTACT from '@salesforce/schema/User.ContactId';
+
 
 export default class UserList extends LightningElement {
-    @track users = [
-        {
-            Id: 1,
-            Name: 'John Doe',
-            Title: 'Admin',
-            Username: 'john.doe@salesforce.com',
-            Phone: '123-456-7890',
-            Department: 'IT'
-        },
-        {
-            Id: 2,
-            Name: 'Jane Smith',
-            Title: 'Developer',
-            Username: 'jane.smith@salesforce.com',
-            Phone: '987-654-3210',
-            Department: 'Engineering'
-        },
-        {
-            Id: 3,
-            Name: 'Michael Brown',
-            Title: 'Sales',
-            Username: 'michael.brown@salesforce.com',
-            Phone: '555-123-4567',
-            Department: 'Sales'
-        },
-        {
-            Id: 4,
-            Name: 'Emily White',
-            Title: 'HR Manager',
-            Username: 'emily.white@salesforce.com',
-            Phone: '555.987.6543',
-            Department: 'Human Resources'
-        },
-        {
-            Id: 5,
-            Name: 'Samuel Green',
-            Title: 'Support Specialist',
-            Username: 'samuel.green@salesforce.com',
-            Phone: '555-456-7890',
-            Department: 'Support'
-        },
-        {
-            Id: 6,
-            Name: 'Linda Martinez',
-            Title: 'Marketing',
-            Username: 'linda.martinez@salesforce.com',
-            Phone: '555-123-4567',
-            Department: 'Marketing'
-        },
-        {
-            Id: 7,
-            Name: 'Robert Taylor',
-            Title: 'Admin',
-            Username: 'robert.taylor@salesforce.com',
-            Phone: '555-321-4567',
-            Department: 'IT'
-        },
-        {
-            Id: 8,
-            Name: 'Marie Anderson',
-            Title: 'HR Assistant',
-            Username: 'marie.anderson@salesforce.com',
-            Phone: '555-654-3210',
-            Department: 'Human Resources'
-        },
-        {
-            Id: 9,
-            Name: 'James Wilson',
-            Title: 'Support Lead',
-            Username: 'james.wilson@salesforce.com',
-            Phone: '555-789-0123',
-            Department: 'Support'
-        },
-        {
-            Id: 10,
-            Name: 'Patricia Jones',
-            Title: 'Marketing',
-            Username: 'patricia.jones@salesforce.com',
-            Phone: '555-012-3456',
-            Department: 'Marketing'
-        }
-    ];
+    fields = [NAME, EMAIL, PHONE, TITLE, DEPARTMENT, CONTACT];
 
-    numberOfUsers = this.users.length;
+    @api objectApiName = 'User';
+    @track users = [];
+    @track error;
+    @track departments = [];
+    @track uniqueDepts = new Set();
 
-    @track departments = [
-        {
-            Id: 1,
-            Name: 'Marketing'
-        },
-        {
-            Id: 2,
-            Name: 'Sales'
-        },
-        {
-            Id: 3,
-            Name: 'IT'
-        },
-        {
-            Id: 4,
-            Name: 'Human Resources'
-        },
-        {
-            Id: 5,
-            Name: 'Support'
-        },
-        {
-            Id: 6,
-            Name: 'Engineering'
-        }
-    ];
-
-    handleReset() {
-        const inputFields = this.template.querySelectorAll(
-            'lightning-input-field'
-        );
-
-        if (inputFields) {
-            inputFields.forEach(field => {
-                field.reset();
-            });
-        }
+    connectedCallback() {
+        this.loadUsers();
+        console.log('connectedCallback ' + JSON.stringify(this.users));
     }
 
-    handleSubmit(event) {
+    get numberOfUsers() {
+        return this.users.length;
+    }
+
+    get numberOfDepartments() {
+        return this.uniqueDepts.length;
+    }
+
+    handleClick(event) {
         event.preventDefault();
 
         const fields = event.detail.fields;
         const newUser = {
-            Id: this.users.length + 1,
+            Id: this.numberOfUsers + 1,
             Name: fields.FirstName + ' ' + fields.LastName,
             Title: fields.Title,
             Username: fields.Email,
@@ -139,6 +45,34 @@ export default class UserList extends LightningElement {
         };
 
         this.users.push(newUser);
+
+        this.createDepartment(fields.Department, this.numberOfDepartments + 1);
+    }
+
+    loadUsers() {
+        getUsers()
+            .then(result => {
+                this.users = result;
+
+                this.users.forEach((user, index) => {
+                    this.createDepartment(user.Department, index);
+                });
+            })
+            .catch(error => {
+                this.error = error;
+            });
+    }
+
+    createDepartment(department, id) {
+        if(department !== undefined && !this.uniqueDepts.has(department)) {
+            const newDepartment = {
+                Id: id,
+                Name: department
+            };
+
+            this.departments.push(newDepartment);
+            this.uniqueDepts.add(department);
+        }
     }
 
 }

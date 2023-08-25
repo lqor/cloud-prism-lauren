@@ -1,10 +1,9 @@
-div {
-    background-color: white;
-    width: 80%;
+table {
+    border: thin solid #ddd;
 }
 
-table, th, td {
-    border: 1px solid #ddd;
+td.total {
+    border-top: thin solid #ddd;
 }
 
 tr:hover {
