@@ -116,4 +116,36 @@ public with sharing class ParticipantService {
         }
     }
 
+    /**
+     * This method is part of the Participant to ERP syncing process. It is called from the invocable method, 
+     * sendParticipantsToERP, in the "ParticipantSync" class. It is also called from the execute method in the 
+     * batchable class, "ParticipantSyncBatch." It calls the ERP callout to send participants to the ERP system, 
+     * updates each record with the ERP Id, and returns the list of participants.
+     * 
+     * @param participants   List of participants to send to ERP system
+     */
+    public List<Participant__c> sendParticipantToERP(List<Participant__c> participants) {
+        List<Participant__c> participantsToReturn = new List<Participant__c>();
+
+        for(Participant__c participant : participants) {
+            String participantJSON = JSON.serialize(participant);
+            String responseBody = '';
+            Logger logger = new Logger();
+
+            try {
+                responseBody = ERPCallout.doERPCalloutForParticipant(participantJSON);
+            } catch(ERPCallout.EmptyParticipantException e) {
+                logger.logCalloutException(e);
+            } catch(Exception e) {
+                logger.logException(e);
+            }
+
+            String erpId = ERPCallout.parseErpId(responseBody);
+            participant.ErpId__c = erpId;
+            participantsToReturn.add(participant);
+        }
+
+        return participantsToReturn;
+    }
+
 }
