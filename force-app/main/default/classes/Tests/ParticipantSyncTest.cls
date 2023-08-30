@@ -1,5 +1,5 @@
 @IsTest
-public with sharing class SendParticipantToERPTest {
+public with sharing class ParticipantSyncTest {
 
     @TestSetup
     static void setup() {
@@ -27,7 +27,7 @@ public with sharing class SendParticipantToERPTest {
         List<Id> participantIds = new List<Id> {participant.Id};
 
         Test.startTest();
-        SendParticipantToERP.sendParticipantsToERP(participantIds);
+        ParticipantSync.sendParticipantsToERP(participantIds);
         Test.stopTest();
 
         Participant__c updatedParticipant = [SELECT Id, ErpId__c FROM Participant__c LIMIT 1];
@@ -45,36 +45,15 @@ public with sharing class SendParticipantToERPTest {
         Participant__c syncedParticipant = [SELECT Id FROM Participant__c LIMIT 1];
         List<Id> syncedParticipantIds = new List<Id> {syncedParticipant.Id};
 
-        Test.startTest();
-        SendParticipantToERP.sendParticipantsToERP(syncedParticipantIds);
-        Test.stopTest();
+        try {
+            Test.startTest();
+            ParticipantSync.sendParticipantsToERP(syncedParticipantIds);
+            Test.stopTest();
 
-        Participant__c updatedParticipant = [SELECT Id, ErpId__c FROM Participant__c LIMIT 1];
-        Assert.areNotEqual(ERPCalloutHttpCalloutMock.ERP_ID, updatedParticipant.ErpId__c);
-    }
-
-    @IsTest
-    static void parseErpId_UnitTest() {
-        String reponseBody = '{"erpId":"' + ERPCalloutHttpCalloutMock.ERP_ID + '"}';
-        String expectedId = ERPCalloutHttpCalloutMock.ERP_ID;
-
-        Test.startTest();
-        String actualId = SendParticipantToERP.parseErpId(reponseBody);
-        Test.stopTest();
-
-        Assert.areEqual(expectedId, actualId);
-    }
-
-    @IsTest
-    static void parseErpId_UnitTest_noErpIdKey() {
-        String reponseBody = '{"ErpsId":"' + ERPCalloutHttpCalloutMock.ERP_ID + '"}';
-        String expectedId = '';
-
-        Test.startTest();
-        String actualId = SendParticipantToERP.parseErpId(reponseBody);
-        Test.stopTest();
-
-        Assert.areEqual(expectedId, actualId);
+            Assert.fail();
+        } catch(ParticipantSync.ParticipantSyncedException e) {
+            Assert.isTrue(true);
+        }
     }
 
 }

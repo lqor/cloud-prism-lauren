@@ -1,8 +1,5 @@
 public class RegistrationConfirmationQueueable implements Queueable, Database.AllowsCallouts {
 
-    public virtual class RegistrationConfirmationQueueableException extends Exception {}
-    public class PaymentLinkCalloutException extends RegistrationConfirmationQueueableException {}
-
     private List<Training__c> trainings;
 
     public RegistrationConfirmationQueueable(List<Training__c> trainings) {
@@ -20,23 +17,18 @@ public class RegistrationConfirmationQueueable implements Queueable, Database.Al
 
         for(Training__c training : trainings) {
             for(Participant__c participant : training.Participants__r) {
-                Logger logger = new Logger();
                 String responseBody = '';
-                String link = '';
+                Logger logger = new Logger();
 
                 try {
                     responseBody = PaymentLinkCallout.doPaymentCalloutForParticipant(participant);
-                    link = parsePaymentLink(responseBody);
-
-                    if(responseBody == '') {
-                        throw new PaymentLinkCalloutException();
-                    }
-                } catch(PaymentLinkCalloutException p) {
-                    logger.logException(p);
+                } catch(PaymentLinkCallout.NullParticipantException e) {
+                    logger.logCalloutException(e);
                 } catch(Exception e) {
                     logger.logException(e);
                 }
 
+                String link = PaymentLinkCallout.parsePaymentLink(responseBody);
                 participant.PaymentLink__c = link;
                 participantsToUpdate.add(participant);
 
@@ -51,36 +43,6 @@ public class RegistrationConfirmationQueueable implements Queueable, Database.Al
         if(!participantsToUpdate.isEmpty()){
             update participantsToUpdate;
         }
-    }
-
-    /**
-     * This method is part of the Participant registration confirmation process. It is called from the queueable 
-     * class, "RegistrationConfirmationQueueable." It returns the payment link or an empty string if the expected 
-     * data is not found.
-     * 
-     * @param responseBody  JSON body of response from API call
-     */
-    @TestVisible
-    private String parsePaymentLink(String responseBody) {
-        PaymentResponse paymentResponse = (PaymentResponse) JSON.deserialize(responseBody, PaymentResponse.class);
-
-        if(paymentResponse.payer == null) {
-            return '';
-        }
-
-        if(paymentResponse.payer.link == null) {
-            return '';
-        }
-
-        return paymentResponse.payer.link;
-    }
-
-    public class PaymentResponse {
-        public Payer payer;
-    }
-
-    public class Payer {
-        public String link;
     }
 
 }

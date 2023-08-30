@@ -33,4 +33,55 @@ private class PaymentLinkCalloutTest {
         Assert.isTrue(responseBody.contains('payer'));
     }
 
+    @IsTest
+    static void doPaymentCalloutForParticipant_UnitTest_NullParticipant() {
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+
+        try {
+            Test.startTest();
+            String responseBody = PaymentLinkCallout.doPaymentCalloutForParticipant(null);
+            Test.stopTest();
+
+            Assert.fail();
+        } catch(PaymentLinkCallout.NullParticipantException e) {
+            Assert.isTrue(true);
+        }
+    }
+
+    @IsTest
+    static void parsePaymentLink_UnitTest() {
+        String reponseBody = '{"payer":{"link":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
+        String expectedLink = PaymentLinkHttpCalloutMock.PAYMENT_LINK;
+
+        Test.startTest();
+        String actualLink = PaymentLinkCallout.parsePaymentLink(reponseBody);
+        Test.stopTest();
+
+        Assert.areEqual(expectedLink, actualLink);
+    }
+
+    @IsTest
+    static void parsePaymentLink_UnitTest_noPayerKey() {
+        String reponseBody = '{"payee":{"link":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
+        String expectedLink = '';
+
+        Test.startTest();
+        String actualLink = PaymentLinkCallout.parsePaymentLink(reponseBody);
+        Test.stopTest();
+
+        Assert.areEqual(expectedLink, actualLink);
+    }
+
+    @IsTest
+    static void parsePaymentLink_UnitTest_noLinkKey() {
+        String reponseBody = '{"payer":{"lnk":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
+        String expectedLink = '';
+
+        Test.startTest();
+        String actualLink = PaymentLinkCallout.parsePaymentLink(reponseBody);
+        Test.stopTest();
+
+        Assert.areEqual(expectedLink, actualLink);
+    }
+
 }

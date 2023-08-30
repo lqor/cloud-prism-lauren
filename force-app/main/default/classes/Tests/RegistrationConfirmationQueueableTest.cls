@@ -53,30 +53,22 @@ public class RegistrationConfirmationQueueableTest {
         Assert.areEqual('RegistrationConfirmationQueueable', job.ApexClass.Name);
     }
 
-    @IsTest
-    static void parsePaymentLink_UnitTest_noPayerKey() {
-        String reponseBody = '{"payee":{"link":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
-        String expectedLink = '';
+    // @IsTest
+    // static void queueable_UnitTest_NullParticipant() {
+    //     List<Training__c> trainings = [
+    //         SELECT Id, Name, (SELECT Id FROM Participants__r WHERE Id = 'a038b00000XAU4QAAX') FROM Training__c];
+    //         System.debug(trainings);
 
-        RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
-        Test.startTest();
-        String actualLink = q.parsePaymentLink(reponseBody);
-        Test.stopTest();
+    //     try {
+    //         Test.startTest();
+    //         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
+    //         Test.stopTest();
+    //         System.debug(jobId);
 
-        Assert.areEqual(expectedLink, actualLink);
-    }
-
-    @IsTest
-    static void parsePaymentLink_UnitTest_noLinkKey() {
-        String reponseBody = '{"payer":{"lnk":"' + PaymentLinkHttpCalloutMock.PAYMENT_LINK + '"}}';
-        String expectedLink = '';
-
-        RegistrationConfirmationQueueable q = new RegistrationConfirmationQueueable(null);
-        Test.startTest();
-        String actualLink = q.parsePaymentLink(reponseBody);
-        Test.stopTest();
-
-        Assert.areEqual(expectedLink, actualLink);
-    }
+    //         Assert.fail();
+    //     } catch(PaymentLinkCallout.NullParticipantException e) {
+    //         Assert.isTrue(true);
+    //     }
+    // }
 
 }
