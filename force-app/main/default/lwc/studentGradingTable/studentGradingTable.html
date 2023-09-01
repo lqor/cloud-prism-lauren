@@ -1,8 +1,11 @@
 <template>
     <lightning-card title="Participant Grading" icon-name="custom:custom15">
+        <lightning-input type="text" label="Participant ERP Id: " onchange={handleInputChange}></lightning-input>
+        <lightning-button variant="brand" label="Search participant" onclick={searchParticipant}></lightning-button> 
+
         <div class="slds-m-around_medium">
             <lightning-datatable 
-                key-field="id" 
+                key-field="participantId" 
                 data={participants} 
                 show-row-number-column 
                 columns={columns} 

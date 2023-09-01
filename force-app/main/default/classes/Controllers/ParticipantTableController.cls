@@ -33,8 +33,7 @@ public with sharing class ParticipantTableController {
         try {
             upsert participantsToUpdate;
             return 'Participants Updated Successfully!!';
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             Logger logger = new Logger();
             logger.logException(e);
             return 'The following exception has occurred: ' + e.getMessage();
@@ -43,17 +42,17 @@ public with sharing class ParticipantTableController {
 
     public class ParticipantWrapper {
         @AuraEnabled
-        public String ParticipantId;
+        public String participantId;
         @AuraEnabled
-        public String ParticipantName;
+        public String participantName;
         @AuraEnabled
-        public String ParticipantEmail;
+        public String participantEmail;
         @AuraEnabled
-        public String ParticipantStatus;
+        public String participantStatus;
         @AuraEnabled
-        public Integer ParticipantGPA;
+        public Integer participantGPA;
         @AuraEnabled
-        public Boolean ParticipantPassed;
+        public Boolean participantPassed;
     }
 
 }
