@@ -5,16 +5,17 @@ import updateParticipants from '@salesforce/apex/ParticipantTableController.upda
 
 export default class StudentGradingTable extends LightningElement {
     columns = [
-        { label: 'Name', fieldName: 'ParticipantName', type: 'text', editable: false },
-        { label: 'Email', fieldName: 'ParticipantEmail', type: 'email', editable: false },
-        { label: 'Status', fieldName: 'ParticipantStatus', type: 'text', editable: false },
-        { label: 'GPA', fieldName: 'ParticipantGPA', type: 'number', editable: true },
-        { label: 'Passed', fieldName: 'ParticipantPassed', type: 'boolean', editable: true },
+        { label: 'Name', fieldName: 'participantName', type: 'text', editable: false },
+        { label: 'Email', fieldName: 'participantEmail', type: 'email', editable: false },
+        { label: 'Status', fieldName: 'participantStatus', type: 'text', editable: false },
+        { label: 'GPA', fieldName: 'participantGPA', type: 'number', editable: true },
+        { label: 'Passed', fieldName: 'participantPassed', type: 'boolean', editable: true },
     ];
 
     @api recordId;
     @track participants = [];
-    @track error
+    @track draftValues = [];
+    error;
 
     connectedCallback() {
         this.loadParticipants();
@@ -31,55 +32,46 @@ export default class StudentGradingTable extends LightningElement {
     }
 
     handleSave(event) {
-        const saveDraftValues = event.detail.draftValues;
-
-        const participantsToUpdate = saveDraftValues.filter(this.filterByID).map(draft => {
-            const participant = { Id: this.participants[draft.id.substring(4)].ParticipantId };
-
-            if('ParticipantGPA' in draft && draft.ParticipantGPA !== null) {
-                participant.GPA__c = draft.ParticipantGPA;
-            }
-            if('ParticipantPassed' in draft && draft.ParticipantPassed !== null) {
-                participant.Passed__c = draft.ParticipantPassed;
-            }
-
-            return participant;
-        });
-
-        this.saveParticipants(participantsToUpdate);
+        this.copyDraftToParticipants(event.detail.draftValues);
+        this.saveParticipants();
+        this.draftValues = [];
     }
 
-    saveParticipants(participantsToUpdate) {
-        updateParticipants({ participantsToUpdate })
-            .then(result => {
-                this.draftValues = [];
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Success',
-                        message: result,
-                        variant: 'success'
-                    })
-                );
+    copyDraftToParticipants(draftValues) {
+        draftValues.forEach((draftElement) => {
+            this.participants.forEach((participantElement) => {
+                if(draftElement.participantId === participantElement.participantId) {
+                    if(draftElement.participantGPA) {
+                        participantElement.participantGPA = draftElement.participantGPA;
+                    }
 
-                this.loadParticipants();
+                    if(draftElement.participantPassed !== null) {
+                        participantElement.participantPassed = draftElement.participantPassed;
+                    }
+                }
+            });
+        });
+    }
+
+    saveParticipants() {
+        updateParticipants({ serializedParticipants: JSON.stringify(this.participants) })
+            .then(result => {
+                this.showToast('Success', result, 'success');
             })
             .catch(error => {
-                console.error('Error updating participants:', error);
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Error',
-                        message: 'An Error Occurred!!',
-                        variant: 'error'
-                    })
-                );
+                this.error = JSON.stringify(error);
+                this.showToast('Error', 'An Error Occurred!!', 'error');
             });
     }
 
-    filterByID(draft) {
-        if ('id' in draft && draft.id !== null) {
-          return true;
-        }
-        return false;
+    showToast(title, message, variant) {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: title,
+                message: message,
+                variant: variant
+            })
+        );
     }
 
 }
