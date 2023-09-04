@@ -2,6 +2,7 @@ import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getParticipants from '@salesforce/apex/ParticipantTableController.getParticipants';
 import updateParticipants from '@salesforce/apex/ParticipantTableController.updateParticipants';
+import getParticipantByErpId from '@salesforce/apex/ParticipantTableController.getParticipantByErpId';
 
 export default class StudentGradingTable extends LightningElement {
     columns = [
@@ -15,6 +16,7 @@ export default class StudentGradingTable extends LightningElement {
     @api recordId;
     @track participants = [];
     @track draftValues = [];
+    @track erpId;
     error;
 
     connectedCallback() {
@@ -62,6 +64,33 @@ export default class StudentGradingTable extends LightningElement {
                 this.error = JSON.stringify(error);
                 this.showToast('Error', 'An Error Occurred!!', 'error');
             });
+    }
+
+    handleClick(event) {
+        console.log(event);
+        console.log(JSON.stringify(event));
+        this.searchParticipant();
+    }
+
+    searchParticipant() {
+        console.log('searchParticipant():');
+        console.log('trainingId:' + this.recordId);
+        console.log('erpId:' + this.erpId);
+
+        getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
+            .then(result => {
+                this.showToast('Success', result, 'success');
+            })
+            .catch(error => {
+                this.error = JSON.stringify(error);
+                console.log('this.error:' + this.error);
+                this.showToast('Error', 'An error occurred while searching for this participant!!', 'error');
+            });
+    }
+
+    handleInputChange(event) {
+        this.erpId = event.target.value;
+        console.log(this.erpId);
     }
 
     showToast(title, message, variant) {

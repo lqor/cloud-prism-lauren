@@ -1,6 +1,17 @@
 <template>
     <lightning-card title="Participant Grading" icon-name="custom:custom15">
-        <div class="slds-m-around_medium">
+        <div class="slds-var-m-around_medium">
+            <div class="slds-grid slds-wrap slds-grid_vertical-align-end slds-var-m-bottom_large">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12 slds-large-size_6-of-12 slds-var-p-right_medium">
+                    <lightning-input name="participantId" type="text" label="Participant ERP ID:" onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12 slds-large-size_6-of-12 slds-var-p-top_small slds-var-p-right_medium">
+                    <div class="">
+                        <lightning-button variant="brand" label="Search Participant" onclick={handleClick}></lightning-button>
+                    </div>
+                </div>
+            </div>
+
             <lightning-datatable 
                 key-field="participantId" 
                 data={participants} 

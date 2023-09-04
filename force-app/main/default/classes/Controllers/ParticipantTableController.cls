@@ -2,11 +2,7 @@ public with sharing class ParticipantTableController {
 
     @AuraEnabled
     public static List<ParticipantWrapper> getParticipants(Id trainingId) {
-        List<Participant__c> participants = [
-            SELECT Id, Name, Status__c, GPA__c, Passed__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
-            FROM Participant__c 
-            WHERE Training__c = :trainingId
-        ];
+        List<Participant__c> participants = ParticipantQueries.queryParticipantsByTrainingId(trainingId);
 
         if(participants.isEmpty()) {
             return null;
@@ -38,6 +34,31 @@ public with sharing class ParticipantTableController {
             logger.logException(e);
             return 'The following exception has occurred: ' + e.getMessage();
         }
+    }
+
+    @AuraEnabled
+    public static String getParticipantByErpId(Id trainingId, String erpId) {
+        System.debug('trainingId: ' + trainingId);
+        System.debug('erpId: ' + erpId);
+
+        ParticipantService service = new ParticipantService();
+        String participantName = service.getParticipantFromERP(trainingId, erpId);
+        System.debug('participantName: ' + participantName);
+
+        Participant__c priorParticipant = ParticipantQueries.queryParticipantByName(participantName);
+        System.debug('priorParticipant: ' + priorParticipant);
+
+        Participant__c newParticipant = service.insertNewParticipantFromPriorParticipant(priorParticipant, trainingId);
+        System.debug('participants list: ' + newParticipant);
+
+        List<Participant__c> participants = new List<Participant__c> {newParticipant};
+        List<Participant__c> participantsToUpdate = service.sendParticipantToERP(participants);
+
+        if(!participantsToUpdate.isEmpty()){
+            update participantsToUpdate;
+        }
+ 
+        return 'Participant Added';
     }
 
     private static List<ParticipantWrapper> convertParticipantsToWrappers(List<Participant__c> participants) {
