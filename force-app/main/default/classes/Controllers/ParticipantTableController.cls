@@ -8,9 +8,7 @@ public with sharing class ParticipantTableController {
             return null;
         }
 
-        List<ParticipantWrapper> participantWrappersToSend = convertParticipantsToWrappers(participants);
-
-        return participantWrappersToSend;
+        return convertParticipantsToWrappers(participants);
     }
 
     @AuraEnabled
@@ -23,12 +21,12 @@ public with sharing class ParticipantTableController {
         List<Participant__c> participantsToUpdate = convertWrappersToParticipants(wrappers);
 
         if(participantsToUpdate.isEmpty()) {
-            return 'No Participants to Update!!';
+            return 'No Participants to Update!';
         }
 
         try {
             upsert participantsToUpdate;
-            return 'Participants Updated Successfully!!';
+            return 'Participants were successfully updated!';
         } catch(Exception e) {
             Logger logger = new Logger();
             logger.logException(e);
@@ -37,28 +35,17 @@ public with sharing class ParticipantTableController {
     }
 
     @AuraEnabled
-    public static String getParticipantByErpId(Id trainingId, String erpId) {
-        System.debug('trainingId: ' + trainingId);
-        System.debug('erpId: ' + erpId);
-
+    public static List<ParticipantWrapper> getParticipantByErpId(Id trainingId, String erpId) {
         ParticipantService service = new ParticipantService();
+
         String participantName = service.getParticipantFromERP(trainingId, erpId);
-        System.debug('participantName: ' + participantName);
-
         Participant__c priorParticipant = ParticipantQueries.queryParticipantByName(participantName);
-        System.debug('priorParticipant: ' + priorParticipant);
-
-        Participant__c newParticipant = service.insertNewParticipantFromPriorParticipant(priorParticipant, trainingId);
-        System.debug('participants list: ' + newParticipant);
+        Participant__c newParticipant = service.insertNewParticipantFromPrior(trainingId, priorParticipant);
 
         List<Participant__c> participants = new List<Participant__c> {newParticipant};
-        List<Participant__c> participantsToUpdate = service.sendParticipantToERP(participants);
+        Id jobId = System.enqueueJob(new ParticipantSyncQueueable(participants));
 
-        if(!participantsToUpdate.isEmpty()){
-            update participantsToUpdate;
-        }
- 
-        return 'Participant Added';
+        return getParticipants(trainingId);
     }
 
     private static List<ParticipantWrapper> convertParticipantsToWrappers(List<Participant__c> participants) {

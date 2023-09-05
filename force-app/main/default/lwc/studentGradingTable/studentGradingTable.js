@@ -5,6 +5,15 @@ import updateParticipants from '@salesforce/apex/ParticipantTableController.upda
 import getParticipantByErpId from '@salesforce/apex/ParticipantTableController.getParticipantByErpId';
 
 export default class StudentGradingTable extends LightningElement {
+
+    @api recordId;
+
+    @track participants = [];
+    @track draftValues = [];
+    @track erpId;
+
+    error;
+
     columns = [
         { label: 'Name', fieldName: 'participantName', type: 'text', editable: false },
         { label: 'Email', fieldName: 'participantEmail', type: 'email', editable: false },
@@ -12,12 +21,6 @@ export default class StudentGradingTable extends LightningElement {
         { label: 'GPA', fieldName: 'participantGPA', type: 'number', editable: true },
         { label: 'Passed', fieldName: 'participantPassed', type: 'boolean', editable: true },
     ];
-
-    @api recordId;
-    @track participants = [];
-    @track draftValues = [];
-    @track erpId;
-    error;
 
     connectedCallback() {
         this.loadParticipants();
@@ -58,39 +61,33 @@ export default class StudentGradingTable extends LightningElement {
     saveParticipants() {
         updateParticipants({ serializedParticipants: JSON.stringify(this.participants) })
             .then(result => {
-                this.showToast('Success', result, 'success');
+                JSON.stringify(result);
+                this.showToast('Success', 'Participants were successfully updated!', 'success');
             })
             .catch(error => {
                 this.error = JSON.stringify(error);
-                this.showToast('Error', 'An Error Occurred!!', 'error');
+                this.showToast('Error', 'An error occurred while saving Participants', 'error');
             });
     }
 
-    handleClick(event) {
-        console.log(event);
-        console.log(JSON.stringify(event));
+    handleClick() {
         this.searchParticipant();
     }
 
     searchParticipant() {
-        console.log('searchParticipant():');
-        console.log('trainingId:' + this.recordId);
-        console.log('erpId:' + this.erpId);
-
         getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
             .then(result => {
-                this.showToast('Success', result, 'success');
+                this.participants = result;
+                this.showToast('Success', 'Participant was successfully added!', 'success');
             })
             .catch(error => {
                 this.error = JSON.stringify(error);
-                console.log('this.error:' + this.error);
-                this.showToast('Error', 'An error occurred while searching for this participant!!', 'error');
+                this.showToast('Error', 'An error occurred while searching for Participant', 'error');
             });
     }
 
     handleInputChange(event) {
         this.erpId = event.target.value;
-        console.log(this.erpId);
     }
 
     showToast(title, message, variant) {

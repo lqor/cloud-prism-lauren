@@ -4,7 +4,7 @@ public class PaymentLinkCallout {
     public class NullParticipantException extends PaymentLinkCalloutException {}
 
     public static final String REQUEST_METHOD_GET = 'GET';
-    public static final String REQUEST_ENDPOINT = 'https://735ef563-176d-431c-85ce-2cc07056ef03.mock.pstmn.io/payments/link';
+    public static final String REQUEST_ENDPOINT = 'callout:MockPaymentProvider';
     public static final String REQUEST_CONTENT_TYPE = 'application/json';
 
     /**
