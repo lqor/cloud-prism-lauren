@@ -6,4 +6,9 @@
         <target>lightning__AppPage</target>
         <target>lightning__RecordPage</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage">
+            <property name="showSearch" type="Boolean" default="true" label="Show Search?" />
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>

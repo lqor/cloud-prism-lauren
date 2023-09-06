@@ -45,7 +45,9 @@ public with sharing class ParticipantTableController {
         List<Participant__c> participants = new List<Participant__c> {newParticipant};
         Id jobId = System.enqueueJob(new ParticipantSyncQueueable(participants));
 
-        return getParticipants(trainingId);
+        List<Participant__c> participantToWrapper = ParticipantQueries.queryParticipantAndContactById(newParticipant.Id);
+
+        return convertParticipantsToWrappers(participantToWrapper);
     }
 
     private static List<ParticipantWrapper> convertParticipantsToWrappers(List<Participant__c> participants) {

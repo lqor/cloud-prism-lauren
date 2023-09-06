@@ -7,12 +7,15 @@ import getParticipantByErpId from '@salesforce/apex/ParticipantTableController.g
 export default class StudentGradingTable extends LightningElement {
 
     @api recordId;
+    @api showSearch;
 
     @track participants = [];
     @track draftValues = [];
     @track erpId;
 
     error;
+    errorMessage;
+    showSpinner = false;
 
     columns = [
         { label: 'Name', fieldName: 'participantName', type: 'text', editable: false },
@@ -62,28 +65,46 @@ export default class StudentGradingTable extends LightningElement {
         updateParticipants({ serializedParticipants: JSON.stringify(this.participants) })
             .then(result => {
                 JSON.stringify(result);
-                this.showToast('Success', 'Participants were successfully updated!', 'success');
+                this.showToast('Success', 'Participant(s) successfully updated!', 'success');
             })
             .catch(error => {
                 this.error = JSON.stringify(error);
-                this.showToast('Error', 'An error occurred while saving Participants', 'error');
+                this.errorMessage = this.error;
+                this.showToast('Error', 'An error occurred while trying to save the Participant(s).', 'error');
             });
     }
 
-    handleClick() {
-        this.searchParticipant();
+    handleClickAddParticipant() {
+        if(this.erpId && !isNaN(this.erpId)) {
+            this.searchParticipant();
+            this.showSpinner = true;
+        } else {
+            this.showToast('Error', 'Please enter a Participant Erp Id.', 'error');
+        }
     }
 
     searchParticipant() {
         getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
             .then(result => {
-                this.participants = result;
-                this.showToast('Success', 'Participant was successfully added!', 'success');
+                this.participants = [...this.participants, result];
+                this.loadParticipants();
+                this.showToast('Success', 'Participant successfully added!', 'success');
+                this.showSpinner = !this.showSpinner;
             })
             .catch(error => {
                 this.error = JSON.stringify(error);
-                this.showToast('Error', 'An error occurred while searching for Participant', 'error');
+                this.errorMessage = 'Participant with ERP ID "' + this.erpId + '" could not be found.';
+                this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
+                this.showSpinner = !this.showSpinner;
             });
+    }
+
+    handleClickNewParticipant() {
+        this.addNewParticipant();
+    }
+
+    addNewParticipant() {
+        this.showToast('Notice', 'This feature will be shipped in the next release.', 'info');
     }
 
     handleInputChange(event) {

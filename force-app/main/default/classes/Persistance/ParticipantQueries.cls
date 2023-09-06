@@ -28,4 +28,12 @@ public with sharing class ParticipantQueries {
         return [SELECT Id, Name, Status__c, ErpId__c FROM Participant__c WHERE Id = :participantId LIMIT 1];
     }
 
+    public static List<Participant__c> queryParticipantAndContactById(Id participantId) {
+        return [
+            SELECT Id, Name, Status__c, GPA__c, Passed__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
+            FROM Participant__c 
+            WHERE Id = :participantId
+        ];
+    }
+
 }
