@@ -2,19 +2,13 @@ public with sharing class ParticipantTableController {
 
     @AuraEnabled
     public static List<ParticipantWrapper> getParticipants(Id trainingId) {
-        List<Participant__c> participants = [
-            SELECT Id, Name, Status__c, GPA__c, Passed__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email 
-            FROM Participant__c 
-            WHERE Training__c = :trainingId
-        ];
+        List<Participant__c> participants = ParticipantQueries.queryParticipantsByTrainingId(trainingId);
 
         if(participants.isEmpty()) {
             return null;
         }
 
-        List<ParticipantWrapper> participantWrappersToSend = convertParticipantsToWrappers(participants);
-
-        return participantWrappersToSend;
+        return convertParticipantsToWrappers(participants);
     }
 
     @AuraEnabled
@@ -27,17 +21,31 @@ public with sharing class ParticipantTableController {
         List<Participant__c> participantsToUpdate = convertWrappersToParticipants(wrappers);
 
         if(participantsToUpdate.isEmpty()) {
-            return 'No Participants to Update!!';
+            return 'No Participants to Update!';
         }
 
         try {
             upsert participantsToUpdate;
-            return 'Participants Updated Successfully!!';
+            return 'Participants were successfully updated!';
         } catch(Exception e) {
             Logger logger = new Logger();
             logger.logException(e);
             return 'The following exception has occurred: ' + e.getMessage();
         }
+    }
+
+    @AuraEnabled
+    public static List<ParticipantWrapper> getParticipantByErpId(Id trainingId, String erpId) {
+        ParticipantService service = new ParticipantService();
+
+        String participantName = service.getParticipantFromERP(trainingId, erpId);
+        Participant__c priorParticipant = ParticipantQueries.queryParticipantByName(participantName);
+        Participant__c newParticipant = service.insertNewParticipantFromPrior(trainingId, priorParticipant);
+
+        List<Participant__c> participants = new List<Participant__c> {newParticipant};
+        Id jobId = System.enqueueJob(new ParticipantSyncQueueable(participants));
+
+        return getParticipants(trainingId);
     }
 
     private static List<ParticipantWrapper> convertParticipantsToWrappers(List<Participant__c> participants) {
