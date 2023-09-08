@@ -1,0 +1,25 @@
+<template>
+    <lightning-modal-header label="New Participant"></lightning-modal-header>
+    <lightning-modal-body>
+        <lightning-record-edit-form object-api-name={objectApiName} onsubmit={handleSubmit}>
+            <div class="slds-var-m-horizontal_large">
+                <lightning-messages> </lightning-messages>
+                <!-- <lightning-input-field field-name="Name"></lightning-input-field> -->
+                <lightning-input-field field-name="Contact__c"></lightning-input-field>
+                <lightning-input-field field-name="Status__c" value={statusDefault}></lightning-input-field>
+                <lightning-input-field field-name="Training__c" value={trainingId}></lightning-input-field>
+            </div>
+
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-3">
+                </div>
+                <div class="slds-col slds-size_1-of-3 slds-var-m-top_large slds-align_absolute-center">
+                    <lightning-button variant="brand" type="submit" label="Save">
+                    </lightning-button>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                </div>
+            </div>
+        </lightning-record-edit-form>
+    </lightning-modal-body>
+</template>
