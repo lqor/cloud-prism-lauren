@@ -3,6 +3,8 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getParticipants from '@salesforce/apex/ParticipantTableController.getParticipants';
 import updateParticipants from '@salesforce/apex/ParticipantTableController.updateParticipants';
 import getParticipantByErpId from '@salesforce/apex/ParticipantTableController.getParticipantByErpId';
+import addNewParticipant from '@salesforce/apex/ParticipantTableController.addNewParticipant';
+import newParticipantModal from 'c/newParticipantModal';
 
 export default class StudentGradingTable extends LightningElement {
 
@@ -86,8 +88,7 @@ export default class StudentGradingTable extends LightningElement {
     searchParticipant() {
         getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
             .then(result => {
-                this.participants = [...this.participants, result];
-                this.loadParticipants();
+                this.participants = [...this.participants, result[0]];
                 this.showToast('Success', 'Participant successfully added!', 'success');
                 this.showSpinner = !this.showSpinner;
             })
@@ -100,11 +101,22 @@ export default class StudentGradingTable extends LightningElement {
     }
 
     handleClickNewParticipant() {
-        this.addNewParticipant();
-    }
-
-    addNewParticipant() {
-        this.showToast('Notice', 'This feature will be shipped in the next release.', 'info');
+        newParticipantModal.open({
+            size: 'small',
+            trainingId: this.recordId,
+            onnew: (e) => {
+                addNewParticipant({ trainingId: this.recordId, serializedParticipant: JSON.stringify(e.detail) })
+                    .then(result => {
+                        this.participants = [...this.participants, result[0]];
+                        this.showToast('Success', 'Participant successfully added!', 'success');
+                    })
+                    .catch(error => {
+                        this.error = JSON.stringify(error);
+                        this.errorMessage = 'Participant could not be created.';
+                        this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
+                    });
+            }
+        });
     }
 
     handleInputChange(event) {

@@ -1,6 +1,5 @@
 public with sharing class ParticipantService {
 
-    public static final String PARTICIPANT_STATUS_IN_QUEUE = 'In Queue';
     public static final String PARTICIPANT_STATUS_ACTIVE = 'Active';
     public static final String PARTICIPANT_STATUS_PARTICIPATED = 'Participated';
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
@@ -188,7 +187,7 @@ public with sharing class ParticipantService {
 
         newParticipant.Contact__c = priorParticipant.Contact__c;
         newParticipant.Training__c = trainingId;
-        newParticipant.Status__c = PARTICIPANT_STATUS_IN_QUEUE;
+        newParticipant.Status__c = PARTICIPANT_STATUS_ACTIVE;
 
         try {
             insert newParticipant;
@@ -198,6 +197,29 @@ public with sharing class ParticipantService {
         }
 
         Participant__c participantToReturn = ParticipantQueries.queryParticipantById(newParticipant.Id);
+
+        return participantToReturn;
+    }
+
+    /**
+     * This method is part of the Participant creation process. It is called from the addNewParticipant method 
+     * in the controller class, "ParticipantTableController." It returns a new participant record added to the 
+     * new training.
+     * 
+     * @param trainingId    Id of the training to add the participant to
+     * @param participant   Participant to be added
+     */
+    public Participant__c insertNewParticipant(Id trainingId, Participant__c participant) {
+        participant.Training__c = trainingId;
+
+        try {
+            insert participant;
+        } catch(Exception e) {
+            Logger logger = new Logger();
+            logger.logException(e);
+        }
+
+        Participant__c participantToReturn = ParticipantQueries.queryParticipantById(participant.Id);
 
         return participantToReturn;
     }

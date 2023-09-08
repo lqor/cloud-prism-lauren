@@ -2,6 +2,10 @@
     <lightning-card title="Participant Grading" icon-name="custom:custom15">
         <div class="slds-var-m-around_medium">
 
+            <div if:true={showSpinner}>
+                <lightning-spinner variant="brand" size="medium"></lightning-spinner>
+            </div>
+
             <template if:true={error}>
                 <div class="slds-border_bottom slds-var-m-bottom_medium">
                     <p class="slds-text-color_error slds-var-p-around_medium">{errorMessage}</p>
@@ -21,25 +25,22 @@
 
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_6-of-12 slds-var-p-top_small">
                         <lightning-button 
+                            class="slds-var-p-right_medium" 
                             variant="brand" 
                             label="Add Participant" 
                             onclick={handleClickAddParticipant}
-                            class="slds-var-p-right_medium" 
                         ></lightning-button>
                         <lightning-button 
+                            class="slds-var-p-right_medium" 
                             variant="success" 
                             label="New Participant" 
                             onclick={handleClickNewParticipant}
-                            class="slds-var-p-right_medium" 
                         ></lightning-button>
                     </div>
                 </div>
             </template>
 
-            <div class="slds-spinner_container slds-is-relative grading-table">
-                <div if:true={showSpinner}>
-                    <lightning-spinner variant="brand" size="medium"></lightning-spinner>
-                </div>
+            <div class="slds-is-relative">
                 <lightning-datatable 
                     key-field="participantId" 
                     data={participants} 

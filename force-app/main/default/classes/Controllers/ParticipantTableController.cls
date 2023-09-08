@@ -50,6 +50,21 @@ public with sharing class ParticipantTableController {
         return convertParticipantsToWrappers(participantToWrapper);
     }
 
+    @AuraEnabled
+    public static List<ParticipantWrapper> addNewParticipant(Id trainingId, String serializedParticipant) {
+        ParticipantService service = new ParticipantService();
+
+        Participant__c participant = (Participant__c) JSON.deserialize(serializedParticipant, Participant__c.class);
+        Participant__c newParticipant = service.insertNewParticipant(trainingId, participant);
+
+        List<Participant__c> participants = new List<Participant__c> {newParticipant};
+        Id jobId = System.enqueueJob(new ParticipantSyncQueueable(participants));
+
+        List<Participant__c> participantToWrapper = ParticipantQueries.queryParticipantAndContactById(newParticipant.Id);
+
+        return convertParticipantsToWrappers(participantToWrapper);
+    }
+
     private static List<ParticipantWrapper> convertParticipantsToWrappers(List<Participant__c> participants) {
         List<ParticipantWrapper> participantWrappersToSend = new List<ParticipantWrapper>();
 
