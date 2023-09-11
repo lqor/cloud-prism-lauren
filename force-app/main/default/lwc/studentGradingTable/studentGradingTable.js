@@ -2,9 +2,6 @@ import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getParticipants from '@salesforce/apex/ParticipantTableController.getParticipants';
 import updateParticipants from '@salesforce/apex/ParticipantTableController.updateParticipants';
-import getParticipantByErpId from '@salesforce/apex/ParticipantTableController.getParticipantByErpId';
-import addNewParticipant from '@salesforce/apex/ParticipantTableController.addNewParticipant';
-import newParticipantModal from 'c/newParticipantModal';
 
 export default class StudentGradingTable extends LightningElement {
 
@@ -13,7 +10,6 @@ export default class StudentGradingTable extends LightningElement {
 
     @track participants = [];
     @track draftValues = [];
-    @track erpId;
 
     error;
     errorMessage;
@@ -67,60 +63,15 @@ export default class StudentGradingTable extends LightningElement {
         updateParticipants({ serializedParticipants: JSON.stringify(this.participants) })
             .then(result => {
                 JSON.stringify(result);
+
                 this.showToast('Success', 'Participant(s) successfully updated!', 'success');
             })
             .catch(error => {
                 this.error = JSON.stringify(error);
                 this.errorMessage = this.error;
+                
                 this.showToast('Error', 'An error occurred while trying to save the Participant(s).', 'error');
             });
-    }
-
-    handleClickAddParticipant() {
-        if(this.erpId && !isNaN(this.erpId)) {
-            this.searchParticipant();
-            this.showSpinner = true;
-        } else {
-            this.showToast('Error', 'Please enter a Participant Erp Id.', 'error');
-        }
-    }
-
-    searchParticipant() {
-        getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
-            .then(result => {
-                this.participants = [...this.participants, result[0]];
-                this.showToast('Success', 'Participant successfully added!', 'success');
-                this.showSpinner = !this.showSpinner;
-            })
-            .catch(error => {
-                this.error = JSON.stringify(error);
-                this.errorMessage = 'Participant with ERP ID "' + this.erpId + '" could not be found.';
-                this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
-                this.showSpinner = !this.showSpinner;
-            });
-    }
-
-    handleClickNewParticipant() {
-        newParticipantModal.open({
-            size: 'small',
-            trainingId: this.recordId,
-            onnew: (e) => {
-                addNewParticipant({ trainingId: this.recordId, serializedParticipant: JSON.stringify(e.detail) })
-                    .then(result => {
-                        this.participants = [...this.participants, result[0]];
-                        this.showToast('Success', 'Participant successfully added!', 'success');
-                    })
-                    .catch(error => {
-                        this.error = JSON.stringify(error);
-                        this.errorMessage = 'Participant could not be created.';
-                        this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
-                    });
-            }
-        });
-    }
-
-    handleInputChange(event) {
-        this.erpId = event.target.value;
     }
 
     showToast(title, message, variant) {
@@ -131,6 +82,10 @@ export default class StudentGradingTable extends LightningElement {
                 variant: variant
             })
         );
+    }
+
+    handleAddParticipant(event) {
+        this.participants = [...this.participants, event.detail];
     }
 
 }

@@ -6,49 +6,22 @@
                 <lightning-spinner variant="brand" size="medium"></lightning-spinner>
             </div>
 
-            <template if:true={error}>
-                <div class="slds-border_bottom slds-var-m-bottom_medium">
-                    <p class="slds-text-color_error slds-var-p-around_medium">{errorMessage}</p>
-                </div>
-            </template>
-
-            <template if:true={showSearch}>
-                <div class="slds-grid slds-wrap slds-grid_vertical-align-end slds-var-m-bottom_large">
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_6-of-12 slds-var-p-right_medium">
-                        <lightning-input 
-                            name="participantId" 
-                            type="text" 
-                            label="Add Participant By ERP ID:" 
-                            onchange={handleInputChange}
-                        ></lightning-input>
-                    </div>
-
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_6-of-12 slds-var-p-top_small">
-                        <lightning-button 
-                            class="slds-var-p-right_medium" 
-                            variant="brand" 
-                            label="Add Participant" 
-                            onclick={handleClickAddParticipant}
-                        ></lightning-button>
-                        <lightning-button 
-                            class="slds-var-p-right_medium" 
-                            variant="success" 
-                            label="New Participant" 
-                            onclick={handleClickNewParticipant}
-                        ></lightning-button>
-                    </div>
-                </div>
-            </template>
+            <c-participant-search-panel 
+                record-id={recordId} 
+                show-search={showSearch} 
+                onaddparticipantrow={handleAddParticipant}>
+            </c-participant-search-panel>
 
             <div class="slds-is-relative">
                 <lightning-datatable 
                     key-field="participantId" 
                     data={participants} 
+                    errors={errors}
                     show-row-number-column 
                     columns={columns} 
                     draft-values={draftValues} 
-                    onsave={handleSave}
-                ></lightning-datatable>
+                    onsave={handleSave}>
+                </lightning-datatable>
             </div>
 
         </div>
