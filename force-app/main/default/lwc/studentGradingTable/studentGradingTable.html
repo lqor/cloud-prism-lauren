@@ -9,7 +9,9 @@
             <c-participant-search-panel 
                 record-id={recordId} 
                 show-search={showSearch} 
-                onaddparticipantrow={handleAddParticipant}>
+                error-message={errorMessage}
+                onaddrow={handleAddParticipant} 
+                onaddrowerror={handleAddParticipantError}>
             </c-participant-search-panel>
 
             <div class="slds-is-relative">
@@ -20,7 +22,8 @@
                     show-row-number-column 
                     columns={columns} 
                     draft-values={draftValues} 
-                    onsave={handleSave}>
+                    onsave={handleSave} 
+                    onrowaction={handleRowAction}>
                 </lightning-datatable>
             </div>
 

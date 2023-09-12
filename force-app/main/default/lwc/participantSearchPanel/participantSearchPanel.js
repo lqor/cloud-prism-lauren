@@ -8,41 +8,32 @@ export default class ParticipantSearchPanel extends LightningElement {
 
     @api recordId;
     @api showSearch;
+    @api errorMessage;
 
     @track erpId;
-
-    error;
-    errorMessage;
 
     handleInputChange(event) {
         this.erpId = event.target.value;
     }
 
     handleClickAddParticipant() {
-        if(this.erpId) {
             this.searchParticipant();
-
             this.showSpinner = true;
-        } else {
-            this.showToast('Error', 'Please enter a Participant Erp Id.', 'error');
-        }
     }
 
     searchParticipant() {
         getParticipantByErpId({ trainingId: this.recordId, erpId: this.erpId })
             .then(result => {
-                this.dispatchEvent(new CustomEvent('addparticipantrow', { detail: result[0] }));
+                this.dispatchEvent(new CustomEvent('addrow', { detail: result[0] }));
 
-                this.showToast('Success', 'Participant successfully added!', 'success');
-                this.template.querySelector('lightning-input').value = ''; 
+                this.showToast('Success', 'Participant "' + result[0].participantName + '" was added.', 'success');
+                this.template.querySelector('lightning-input').value = '';
                 this.showSpinner = !this.showSpinner;
             })
             .catch(error => {
-                this.error = JSON.stringify(error);
-                this.errorMessage = 'Participant with ERP ID "' + this.erpId + '" could not be found.';
+                this.dispatchEvent(new CustomEvent('addrowerror', { detail: error }));
 
-                this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
-                this.template.querySelector('lightning-input').value = ''; 
+                this.template.querySelector('lightning-input').value = '';
                 this.showSpinner = !this.showSpinner;
             });
     }
@@ -60,15 +51,12 @@ export default class ParticipantSearchPanel extends LightningElement {
     addParticipant(event) {
         addNewParticipant({ trainingId: this.recordId, serializedParticipant: JSON.stringify(event.detail) })
             .then(result => {
-                this.dispatchEvent(new CustomEvent('addparticipantrow', { detail: result[0] }));
+                this.dispatchEvent(new CustomEvent('addrow', { detail: result[0] }));
 
-                this.showToast('Success', 'Participant successfully added!', 'success');
+                this.showToast('Success', 'Participant "' + result[0].participantName + '" was created.', 'success');
             })
             .catch(error => {
-                this.error = JSON.stringify(error);
-                this.errorMessage = 'Participant could not be created.';
-
-                this.showToast('Error', 'An error occurred while trying to add the Participant.', 'error');
+                this.dispatchEvent(new CustomEvent('addrowerror', { detail: error }));
             });
     }
 
