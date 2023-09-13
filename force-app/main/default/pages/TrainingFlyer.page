@@ -1,0 +1,70 @@
+<apex:page standardController="Training__c" renderAs="pdf" applyBodyTag="false">
+    <head>
+        <style>
+            @page {
+                size: A4 landscape;
+                background-image: url("{!$Resource.FlyerBackground}");
+                background-repeat: no-repeat !important;
+                background-position: center center !important;
+                background-size: 100% 100% !important;
+            }
+
+            .container {
+                position: relative;
+            }
+
+            .training {
+                position: absolute;
+                width: 200px;
+                top: 55px;
+                left: 9px;
+                font-size: 110px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: bold;
+                text-transform: uppercase;
+                color: #7d92bb;
+                line-height: 0.73;
+            }
+
+            .trainer {
+                position: absolute;
+                top: 63px;
+                left: 16px;
+                font-size: 20px;
+                font-family: Arial, Helvetica, sans-serif;
+                color: #3c3c3c;
+            } 
+
+            .date {
+                position: absolute;
+                top: 0px;
+                left: 15px;
+                font-size: 40px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: bold;
+                color: #fa8c18;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="training">
+                <p>{!Training__c.Name}</p>
+            </div>
+            <div class="trainer">
+                <p>By {!Training__c.TrainerContact__r.Name}</p>
+            </div>
+            <div class="date">
+                <p>
+                    <apex:outputText value="{0,date,MM.dd}">
+                        <apex:param value="{!Training__c.StartDate__c}"/>
+                    </apex:outputText>
+                    -&nbsp;
+                    <apex:outputText value="{0,date,MM.dd.yyyy}">
+                        <apex:param value="{!Training__c.EndDate__c}"/>
+                    </apex:outputText>
+                </p>
+            </div>
+        </div>
+    </body>
+</apex:page>
