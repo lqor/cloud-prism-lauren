@@ -1,0 +1,98 @@
+<apex:page standardController="Participant__c" renderAs="pdf" applyBodyTag="false">
+    <head>
+        <style>
+            @page {
+                size: A4 landscape;
+                background-image: url("{!$Resource.CertBackground}");
+                background-repeat: no-repeat !important;
+                background-position: center center !important;
+                background-size: 100% 100% !important;
+            }
+
+            .container {
+                position: relative;
+            }
+
+            .presented {
+                margin: auto;
+                padding-top: 220px;
+                width: 100%;
+                font-size: 17px;
+                font-family: sans-serif;
+                font-weight: normal;
+                text-transform: uppercase;
+                text-align: center;
+                letter-spacing: 50px;
+                color: #333560;
+            }
+
+            .student {
+                position: absolute;
+                top: 74%;
+                width: 100%;
+                font-size: 72px;
+                font-family: sans-serif;
+                font-weight: lighter;
+                text-align: center;
+                color: #333560;
+            }
+
+            .completed {
+                position: absolute;
+                top: 151%;
+                width: 100%;
+                font-size: 20px;
+                font-family: sans-serif;
+                text-align: center;
+                color: #333560;
+            } 
+
+            .training {
+                position: absolute;
+                top: 162%;
+                width: 100%;
+                font-size: 38px;
+                font-family: sans-serif;
+                font-weight: lighter;
+                text-align: center;
+                color: #333560;
+            } 
+
+            .date {
+                position: absolute;
+                top: 206%;
+                width: 100%;
+                font-size: 22px;
+                font-family: sans-serif;
+                font-weight: normal;
+                text-align: center;
+                color: #333560;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="presented">
+                <p>P r e s e n t e d &nbsp; t o</p>
+            </div>
+            <div class="student">
+                <p>{!Participant__c.Contact__r.FirstName} {!Participant__c.Contact__r.LastName}</p>
+            </div>
+           <div class="completed">
+                <p>for successfully completing course requirements in</p>
+            </div>
+            <div class="training">
+                <p>{!Participant__c.Training__r.Name}</p>
+            </div>
+            <div class="date">
+                <apex:outputText value="{0,date,MM.dd}">
+                    <apex:param value="{!Participant__c.Training__r.StartDate__c}"/>
+                </apex:outputText>
+                -&nbsp;
+                <apex:outputText value="{0,date,MM.dd.yyyy}">
+                    <apex:param value="{!Participant__c.Training__r.EndDate__c}"/>
+                </apex:outputText>
+            </div>
+        </div>
+    </body>
+</apex:page>
