@@ -1,6 +1,14 @@
-<apex:page standardController="Participant__c" renderAs="pdf" applyBodyTag="false">
+<apex:page controller="PdfGeneratorControllerAura" renderAs="pdf" applyBodyTag="false">
     <head>
         <style>
+            .page-break {
+                page-break-before: always;
+            }
+
+            .page-break:first-child {
+                page-break-before: avoid;
+            }
+
             @page {
                 size: A4 landscape;
                 background-image: url("{!$Resource.CertBackground}");
@@ -71,28 +79,32 @@
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="presented">
-                <p>P r e s e n t e d &nbsp; t o</p>
+        <apex:repeat value="{! participants }" var="participant">
+            <div class="page-break">
+                <div class="container">
+                    <div class="presented">
+                        <p>P r e s e n t e d &nbsp; t o</p>
+                    </div>
+                    <div class="student">
+                        <p>{! participant.Contact__r.FirstName } {! participant.Contact__r.LastName }</p>
+                    </div>
+                <div class="completed">
+                        <p>for successfully completing course requirements in</p>
+                    </div>
+                    <div class="training">
+                        <p>{! participant.Training__r.Name }</p>
+                    </div>
+                    <div class="date">
+                        <apex:outputText value="{0,date,MM.dd}">
+                            <apex:param value="{! participant.Training__r.StartDate__c }"/>
+                        </apex:outputText>
+                        -&nbsp;
+                        <apex:outputText value="{0,date,MM.dd.yyyy}">
+                            <apex:param value="{! participant.Training__r.EndDate__c }"/>
+                        </apex:outputText>
+                    </div>
+                </div>
             </div>
-            <div class="student">
-                <p>{!Participant__c.Contact__r.FirstName} {!Participant__c.Contact__r.LastName}</p>
-            </div>
-           <div class="completed">
-                <p>for successfully completing course requirements in</p>
-            </div>
-            <div class="training">
-                <p>{!Participant__c.Training__r.Name}</p>
-            </div>
-            <div class="date">
-                <apex:outputText value="{0,date,MM.dd}">
-                    <apex:param value="{!Participant__c.Training__r.StartDate__c}"/>
-                </apex:outputText>
-                -&nbsp;
-                <apex:outputText value="{0,date,MM.dd.yyyy}">
-                    <apex:param value="{!Participant__c.Training__r.EndDate__c}"/>
-                </apex:outputText>
-            </div>
-        </div>
+        </apex:repeat>
     </body>
 </apex:page>

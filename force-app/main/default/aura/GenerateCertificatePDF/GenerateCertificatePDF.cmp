@@ -1,0 +1,9 @@
+<aura:component controller="PdfGeneratorControllerAura" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+    <div>
+        <iframe src="{! '/apex/ParticipantCertificate?Id=' + v.recordId }" width="100%" height="475px"></iframe>
+    </div>
+
+    <div>
+        <lightning:button variant="brand" label="Save PDF" onclick="{! c.handleClick }"/>
+    </div>
+</aura:component>
