@@ -23,7 +23,7 @@
 
             .presented {
                 margin: auto;
-                padding-top: 220px;
+                padding-top: 210px;
                 width: 100%;
                 font-size: 17px;
                 font-family: sans-serif;
@@ -68,9 +68,20 @@
 
             .date {
                 position: absolute;
-                top: 206%;
+                top: 203%;
                 width: 100%;
                 font-size: 22px;
+                font-family: sans-serif;
+                font-weight: normal;
+                text-align: center;
+                color: #333560;
+            }
+
+            .names {
+                position: absolute;
+                top: 253%;
+                width: 100%;
+                font-size: 15px;
                 font-family: sans-serif;
                 font-weight: normal;
                 text-align: center;
@@ -102,6 +113,9 @@
                         <apex:outputText value="{0,date,MM.dd.yyyy}">
                             <apex:param value="{! participant.Training__r.EndDate__c }"/>
                         </apex:outputText>
+                    </div>
+                    <div class="names">
+                        <p>John Hancock &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Trainer Person</p>
                     </div>
                 </div>
             </div>
