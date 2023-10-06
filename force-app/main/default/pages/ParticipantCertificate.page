@@ -1,4 +1,4 @@
-<apex:page controller="PdfGeneratorControllerAura" renderAs="pdf" applyBodyTag="false">
+<apex:page controller="PdfGeneratorController" renderAs="pdf" applyBodyTag="false">
     <head>
         <style>
             .page-break {

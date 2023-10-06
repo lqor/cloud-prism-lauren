@@ -1,6 +1,6 @@
 <aura:component controller="PdfGeneratorControllerAura" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
     <div>
-        <iframe src="{! '/apex/ParticipantCertificate?Id=' + v.recordId }" width="100%" height="475px"></iframe>
+        <iframe src="{! '/apex/ParticipantCertificate?trainingId=' + v.recordId }" width="100%" height="475px"></iframe>
     </div>
 
     <div>

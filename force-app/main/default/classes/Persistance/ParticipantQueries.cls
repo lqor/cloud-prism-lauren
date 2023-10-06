@@ -38,4 +38,14 @@ public with sharing class ParticipantQueries {
         ];
     }
 
+    // queryParticipantsById
+    public static List<Participant__c> queryParticipantsById(List<Id> participantIds) {
+        return [
+            SELECT Id, Name, Status__c, GPA__c, Passed__c, Contact__r.FirstName, Contact__r.LastName, Contact__r.Email,
+                   Training__r.Name, Training__r.StartDate__c, Training__r.EndDate__c
+            FROM Participant__c 
+            WHERE Id IN :participantIds
+        ];
+    }
+
 }

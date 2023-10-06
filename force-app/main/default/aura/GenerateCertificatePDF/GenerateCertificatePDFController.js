@@ -2,7 +2,7 @@
     handleClick : function(component, event, helper) {
         var action = component.get("c.saveCertificates");
 
-        action.setParams({ recordId : component.get("v.recordId") });
+        action.setParams({ trainingId : component.get("v.recordId") });
         action.setCallback(this, function(response) {
             var state = response.getState();
 
@@ -22,8 +22,5 @@
         });
 
         $A.enqueueAction(action);
-        
-        JSON.stringify(event);
-        JSON.stringify(helper);
     }
 })
