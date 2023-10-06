@@ -1,21 +1,7 @@
-public with sharing class PdfGeneratorControllerAura {
-
-    @AuraEnabled
-    public String vfUrl { get; set; }
+public with sharing class PdfGeneratorController {
 
     @AuraEnabled
     public static List<Participant__c> participants { get; set; }
-
-    public PdfGeneratorControllerAura() {
-        Id recordId = ApexPages.currentPage().getParameters().get('id');
-        SObjectType objType = recordId.getSObjectType();
-
-        if(String.valueOf(objType) == 'Participant__c') {
-            participants = ParticipantQueries.queryParticipantAndContactById(recordId);
-        } else {
-            participants = ParticipantQueries.queryParticipantsByTrainingId(recordId);
-        }
-    }
 
     @AuraEnabled
     public static void saveCertificates(Id recordId) {
@@ -52,11 +38,6 @@ public with sharing class PdfGeneratorControllerAura {
         if(!files.isEmpty()) {
             insert files;
         }
-    }
-
-    @AuraEnabled
-    public static String getVfUrl(Id trainingId) {
-        return '/apex/ParticipantCertificate?Id=' + trainingId;
     }
 
 }
