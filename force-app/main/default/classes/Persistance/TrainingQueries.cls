@@ -33,4 +33,8 @@ public with sharing class TrainingQueries {
         ];
     }
 
+    public static Training__c queryTrainingById(Id trainingId) {
+        return [SELECT Name FROM Training__c WHERE Id = :trainingId];
+    }
+
 }
