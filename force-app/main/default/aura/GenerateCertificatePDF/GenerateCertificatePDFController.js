@@ -1,8 +1,22 @@
 ({
+    doInit : function(component) {
+        var action = component.get("c.getVfUrl");
+
+        action.setParams({ trainingId : component.get("v.recordId") });
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+
+            if(state === "SUCCESS") {
+                component.set("v.vfUrl", response.getReturnValue());
+            }
+        });
+
+        $A.enqueueAction(action);
+    },
     handleClick : function(component, event, helper) {
         var action = component.get("c.saveCertificates");
 
-        action.setParams({ recordId : component.get("v.recordId") });
+        action.setParams({ trainingId : component.get("v.recordId") });
         action.setCallback(this, function(response) {
             var state = response.getState();
 
@@ -22,8 +36,5 @@
         });
 
         $A.enqueueAction(action);
-        
-        JSON.stringify(event);
-        JSON.stringify(helper);
     }
 })
