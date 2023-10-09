@@ -1,6 +1,6 @@
 ({
     handleClick : function(component, event, helper) {
-        var action = component.get("c.saveCertificates");
+        let action = component.get("c.saveCertificates");
 
         action.setParams({ trainingId : component.get("v.recordId") });
         action.setCallback(this, function(response) {
