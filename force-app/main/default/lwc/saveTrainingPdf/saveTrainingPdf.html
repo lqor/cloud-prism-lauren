@@ -1,11 +1,15 @@
 <template>
+    <div style="display: none;">
+        {recordId}
+    </div>
     <div if:true={showSpinner}>
         <lightning-quick-action-panel class="slds-var-m-vertical_xx-large slds-var-p-vertical_xx-large">
             <div class="slds-var-m-vertical_xx-large slds-var-p-vertical_xx-large">
                 <lightning-spinner 
                     variant="brand" 
                     size="medium" 
-                    class="slds-is-relative slds-align_absolute-center slds-var-m-bottom_xx-large">
+                    class="slds-is-relative slds-align_absolute-center slds-var-m-bottom_xx-large"
+                    alternative-text="Generating PDF...">
                 </lightning-spinner>
                 <div class="slds-text-heading_medium slds-text-align_center slds-var-m-bottom_xx-large">
                     Hang on, generating PDF...

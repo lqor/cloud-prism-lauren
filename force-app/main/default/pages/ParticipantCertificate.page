@@ -1,4 +1,4 @@
-<apex:page controller="PdfGeneratorControllerAura" renderAs="pdf" applyBodyTag="false">
+<apex:page controller="PdfGeneratorController" renderAs="pdf" applyBodyTag="false">
     <head>
         <style>
             .page-break {
@@ -31,61 +31,79 @@
                 text-transform: uppercase;
                 text-align: center;
                 letter-spacing: 50px;
-                color: #333560;
+                color: #3F4169;
             }
 
             .student {
                 position: absolute;
-                top: 74%;
+                top: 70%;
                 width: 100%;
                 font-size: 72px;
                 font-family: sans-serif;
-                font-weight: lighter;
+                font-weight: 100;
                 text-align: center;
-                color: #333560;
+                color: #3F4169;
             }
 
             .completed {
                 position: absolute;
-                top: 151%;
+                top: 140%;
                 width: 100%;
                 font-size: 20px;
                 font-family: sans-serif;
                 text-align: center;
-                color: #333560;
-            } 
+                color: #3F4169;
+            }
 
             .training {
                 position: absolute;
-                top: 162%;
+                top: 150%;
                 width: 100%;
                 font-size: 38px;
                 font-family: sans-serif;
-                font-weight: lighter;
+                font-weight: 100;
                 text-align: center;
-                color: #333560;
+                color: #3F4169;
             } 
 
             .date {
                 position: absolute;
-                top: 203%;
+                top: 190%;
                 width: 100%;
                 font-size: 22px;
                 font-family: sans-serif;
                 font-weight: normal;
                 text-align: center;
-                color: #333560;
+                color: #3F4169;
             }
 
             .names {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .left-name {
                 position: absolute;
-                top: 253%;
+                top: 235%;
+                left: 110px;
                 width: 100%;
                 font-size: 15px;
                 font-family: sans-serif;
                 font-weight: normal;
-                text-align: center;
-                color: #333560;
+                text-align: left;
+                color: #3F4169;
+            }
+
+            .right-name {
+                position: absolute;
+                top: 235%;
+                right: 110px;
+                width: 100%;
+                font-size: 15px;
+                font-family: sans-serif;
+                font-weight: normal;
+                text-align: right;
+                color: #3F4169;
             }
         </style>
     </head>
@@ -99,7 +117,7 @@
                     <div class="student">
                         <p>{! participant.Contact__r.FirstName } {! participant.Contact__r.LastName }</p>
                     </div>
-                <div class="completed">
+                    <div class="completed">
                         <p>for successfully completing course requirements in</p>
                     </div>
                     <div class="training">
@@ -115,12 +133,12 @@
                         </apex:outputText>
                     </div>
                     <div class="names">
-                        <p>John Hancock &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; 
-                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; 
-                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Trainer Person</p>
+                        <div class="left-name">
+                            <p>John Hancock</p>
+                        </div>
+                        <div class="right-name">
+                            <p>Trainer Person</p>
+                        </div>
                     </div>
                 </div>
             </div>
