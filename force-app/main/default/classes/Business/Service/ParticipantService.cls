@@ -5,9 +5,9 @@ public with sharing class ParticipantService {
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
 
     /**
-     * This method is part of the Participant organization process. It is called from the trigger handler class, 
-     * "ParticipantTriggerHandler." The result is an error message indicating the duplicate participant cannot 
-     * be saved.
+     * This method is part of the Participant organization process. It is invoked from the beforeInsert method on the 
+     * trigger handler class, "ParticipantTriggerHandler." The result is an error message indicating the duplicate 
+     * participant cannot be saved.
      * 
      * @param newlist   List of participants
      * @param oldMap    Old map of participants, always null
@@ -43,8 +43,8 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Training restaurant commission calculation process. It is called from 
-     * the trigger handler class, "ParticipantTriggerHandler." It recalculates the result of the restaurant 
+     * This method is part of the Training restaurant commission calculation process. It is invoked from the afterInsert 
+     * method on the trigger handler class, "ParticipantTriggerHandler." It recalculates the result of the restaurant 
      * commission when a participant is added or deleted and updates the trainings.
      * 
      * @param newlist   List of participants
@@ -67,33 +67,53 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is called from the trigger 
-     * handler class, "ParticipantTriggerHandler." It submits the queueable class, "RegistrationConfirmationQueueable," 
+     * This method is part of the Participant registration confirmation process. It is invoked from the afterInsert 
+     * method on the trigger handler class, "ParticipantTriggerHandler." It submits the queueable class, 
+     * "RegistrationConfirmationQueueable," as a job on the queue.
+     * 
+     * @param newlist   List of participants
+     * @param oldMap    Old map of participants, always null
+     */
+    public void enqueueRegistrationConfirmationJob(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
+        Set<Id> participantIds = new Set<Id>();
+
+        for(Participant__c participant : newList) {
+            participantIds.add(participant.Id);
+        }
+
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(
+            participantIds
+        );
+
+        Id regJobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
+    }
+
+    /**
+     * This method is part of the Participant invoice creation process. It is invoked from the afterInsert method on the 
+     * trigger handler class, "ParticipantTriggerHandler." It submits the queueable class, "InvoiceCreationQueueable," 
      * as a job on the queue.
      * 
      * @param newlist   List of participants
      * @param oldMap    Old map of participants, always null
      */
-    public void sendRegistrationConfirmationEmail(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
-        Set<Id> trainingIds = new Set<Id>();
+    public void enqueueInvoiceCreationJob(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> participantIds = new Set<Id>();
 
         for(Participant__c participant : newList) {
             participantIds.add(participant.Id);
-            trainingIds.add(participant.Training__c);
         }
 
-        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsById(
-            trainingIds, 
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(
             participantIds
         );
 
-        Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
+        Id invJobId = System.enqueueJob(new InvoiceCreationQueueable(trainingsWithParticipants));
     }
 
     /**
-     * This method is part of the Training roll-up summary of participants. It is called from the trigger 
-     * handler class, "ParticipantTriggerHandler." It counts participants and updates the field on trainings.
+     * This method is part of the Training roll-up summary of participants. It is invoked from the afterInsert 
+     * method on the trigger handler class, "ParticipantTriggerHandler." It counts participants and updates the field 
+     * on trainings.
      * 
      * @param newlist   List of participants
      * @param oldMap    Old map of participants, always null

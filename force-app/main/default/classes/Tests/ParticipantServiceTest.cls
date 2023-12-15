@@ -112,13 +112,13 @@ public with sharing class ParticipantServiceTest {
     }
 
     @IsTest
-    static void sendRegistrationConfirmationEmail_UnitTest() {
+    static void enqueueRegistrationConfirmationJob_UnitTest() {
         Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
         
         List<Participant__c> participants = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
         Test.startTest();
-        new ParticipantService().sendRegistrationConfirmationEmail(participants, null);
+        new ParticipantService().enqueueRegistrationConfirmationJob(participants, null);
         Test.stopTest();
 
         List<AsyncApexJob> job = [SELECT Id, Status, JobType, ApexClass.Name FROM AsyncApexJob];
@@ -198,7 +198,7 @@ public with sharing class ParticipantServiceTest {
     }
 
     @IsTest
-    static void queryTrainingsForNewParticipantsById_UnitTest() {
+    static void queryTrainingsForNewParticipantsByParticipantIds_UnitTest() {
         Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
 
         Integer expectedParticipantsSize = 1;
@@ -217,7 +217,7 @@ public with sharing class ParticipantServiceTest {
         participantIds.add(newParticipant.Id);
 
         Test.startTest();
-        List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(participantIds);
         Test.stopTest();
 
         Training__c result = trainings.get(0);

@@ -1,6 +1,5 @@
-@IsTest
-public class RegistrationConfirmationQueueableTest {
-
+@isTest
+public class InvoiceCreationQueueableTest {
     @TestSetup
     static void setup() {
         Contact contact1 = new Contact(FirstName = 'Trainer', LastName = 'Name', Email = 'e@mail.com');
@@ -27,7 +26,7 @@ public class RegistrationConfirmationQueueableTest {
         insert participant;
     }
 
-    @IsTest
+    @isTest
     static void queueable_UnitTest() {
         Participant__c participant = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
@@ -40,7 +39,7 @@ public class RegistrationConfirmationQueueableTest {
         List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(participantIds);
 
         Test.startTest();
-        Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
+        Id jobId = System.enqueueJob(new InvoiceCreationQueueable(trainings));
         Test.stopTest();
 
         Assert.isNotNull(jobId);
@@ -48,7 +47,6 @@ public class RegistrationConfirmationQueueableTest {
 
         Assert.areEqual('Completed', job.Status);
         Assert.areEqual('Queueable', job.JobType);
-        Assert.areEqual('RegistrationConfirmationQueueable', job.ApexClass.Name);
+        Assert.areEqual('InvoiceCreationQueueable', job.ApexClass.Name);
     }
-
 }

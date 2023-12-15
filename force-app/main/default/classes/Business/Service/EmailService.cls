@@ -76,11 +76,12 @@ public with sharing class EmailService {
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is called from the 
-     * "PaymentLinkCallout" class. It returns an email confirming enrollment, including payment link.
+     * This method is part of the Participant registration confirmation process. It is invoked from the execute method 
+     * on the queueable class, "RegistrationConfirmationQueueable."
      * 
-     * @param training      Training course the new participant has registered for
-     * @param participant   Participant to be notified
+     * @param training                      Training course the new participant has registered for
+     * @param participant                   Participant to be notified
+     * @return Messaging.SingleEmailMessage Email confirming enrollment
      */
     public static Messaging.SingleEmailMessage createParticipantConfirmationEmail(
         Training__c training, 
@@ -102,24 +103,65 @@ public with sharing class EmailService {
         String courseName = training.TrainingCourse__r.Name;
         String startDate = String.valueOf(training.StartDate__c.format(FORMAT_DATE_TIME));
         String endDate = String.valueOf(training.EndDate__c.format(FORMAT_DATE_TIME));
-        String paymentLink = participant.PaymentLink__c;
 
-        String bodyGreeting = '<p>Dear ' + participantName + ',</p>';
+        String bodyGreeting = '<p>Hello ' + participantName + ',</p>';
         String bodyCourse = '<p>Congrats! You\'re all signed up for your <b>' + courseName + '</b> course with ';
         String bodyTrainer = trainerName + ' on ';
         String bodyStartDate = startDate + ' through ';
         String bodyEndDate = endDate + '.</p>';
-        String bodyPayment = '<p>To complete your registration, please make a payment by clicking on the following ';
-        String bodyPaymentLink = 'link:<br/>' + paymentLink + '</p>';
         String bodyClose = '<p>We look forward to seeing you at the training!</p>';
-        String bodySignature = '<p>Best regards,<br/><br/>Cloud Prism</p>';
+        String bodySignature = '<p>Best regards,<br/>Cloud Prism</p>';
 
         return bodyGreeting + 
                bodyCourse + 
                bodyTrainer + 
                bodyStartDate + 
                bodyEndDate + 
-               bodyPayment + 
+               bodyClose + 
+               bodySignature;
+    }
+
+    /**
+     * This method is part of the Participant payment invoice process. It is invoked from the execute method 
+     * on the queueable class, "InvoiceCreationQueueable."
+     * 
+     * @param training                      Training course the new participant has registered for
+     * @param participant                   Participant to be notified
+     * @return Messaging.SingleEmailMessage Email with payment link
+     */
+    public static Messaging.SingleEmailMessage createParticipantPaymentEmail(
+        Training__c training, 
+        Participant__c participant
+    ) {
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        String subject = 'Enrollment Confirmation: ' + training.TrainingCourse__r.Name;
+
+        email.setToAddresses(new List<String> {participant.Contact__r.Email});
+        email.setSubject(subject);
+        email.setHtmlBody(createParticipantPaymentHtmlBody(training, participant));
+
+        return email;
+    }
+
+    private static String createParticipantPaymentHtmlBody(Training__c training, Participant__c participant) {
+        String participantName = participant.Contact__r.FirstName + ' ' + participant.Contact__r.LastName;
+        String courseName = training.TrainingCourse__r.Name;
+        String startDate = String.valueOf(training.StartDate__c.format(FORMAT_DATE_TIME));
+        String endDate = String.valueOf(training.EndDate__c.format(FORMAT_DATE_TIME));
+        String paymentLink = participant.PaymentLink__c;
+
+        String bodyGreeting = '<p>Hello ' + participantName + ',</p>';
+        String bodyCourse = '<p>To complete your registration for the <b>' + courseName + '</b> course on ';
+        String bodyStartDate = startDate + ' through ';
+        String bodyEndDate = endDate + ', please make a payment by clicking on the ';
+        String bodyPaymentLink = '<a href="' + paymentLink + '" target="_blank">payment link here</a>.</p>';
+        String bodyClose = '<p>We look forward to seeing you at the training!</p>';
+        String bodySignature = '<p>Best regards,<br/>Cloud Prism</p>';
+
+        return bodyGreeting + 
+               bodyCourse + 
+               bodyStartDate + 
+               bodyEndDate + 
                bodyPaymentLink + 
                bodyClose + 
                bodySignature;
