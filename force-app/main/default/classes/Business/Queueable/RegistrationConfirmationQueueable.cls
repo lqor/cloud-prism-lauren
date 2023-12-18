@@ -7,12 +7,12 @@ public class RegistrationConfirmationQueueable implements Queueable {
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is invoked from the 
-     * enqueueRegistrationConfirmationJob method on the "ParticipantService" class. It processes a list of trainings 
-     * and sends confirmation emails to each registered participant.
+     * This method is part of the Participant registration confirmation process.
+     * It is invoked from the enqueueRegistrationConfirmationJob method on the
+     * "ParticipantService" class. It processes a list of trainings and sends
+     * confirmation emails to each registered participant.
      */
     public void execute(QueueableContext context) {
-        List<Participant__c> participantsToUpdate = new List<Participant__c>();
         List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
 
         for(Training__c training : trainings) {

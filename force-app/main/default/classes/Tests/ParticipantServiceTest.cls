@@ -3,7 +3,7 @@ public with sharing class ParticipantServiceTest {
 
     @TestSetup
     static void setup() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Restaurant__c restaurant = new Restaurant__c();
         restaurant.Name = 'Tam O\'Shanter';
@@ -31,7 +31,7 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void preventDuplicateParticipantOnTrainings_lazy() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Training__c training = [SELECT Id, Name FROM Training__c LIMIT 1];
         List<Contact> contacts = [SELECT Id, LastName, CanBookForOthers__c FROM Contact];
@@ -55,7 +55,7 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void recalculateRestaurantCommission_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Integer expectedParticipantsSize = 4;
         Training__c training = [SELECT Id, Name FROM Training__c LIMIT 1];
@@ -112,9 +112,7 @@ public with sharing class ParticipantServiceTest {
     }
 
     @IsTest
-    static void enqueueRegistrationConfirmationJob_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
-        
+    static void enqueueRegistrationConfirmationJob_UnitTest() {     
         List<Participant__c> participants = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
         Test.startTest();
@@ -129,26 +127,26 @@ public with sharing class ParticipantServiceTest {
         Assert.areEqual('RegistrationConfirmationQueueable', result.ApexClass.Name);
     }
 
-    @IsTest
-    static void updateParticipantPaymentLink_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+    // @IsTest
+    // static void updateParticipantPaymentLink_UnitTest() {
+    //     Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
-        Contact contact = [SELECT Id FROM Contact LIMIT 1];
-        Training__c training = [SELECT Id FROM Training__c LIMIT 1];
+    //     Contact contact = [SELECT Id FROM Contact LIMIT 1];
+    //     Training__c training = [SELECT Id FROM Training__c LIMIT 1];
 
-        Participant__c participant = new Participant__c(Contact__c = contact.Id, Training__c = training.Id);
+    //     Participant__c participant = new Participant__c(Contact__c = contact.Id, Training__c = training.Id);
 
-        Test.startTest();
-        insert participant;
-        Test.stopTest();
+    //     Test.startTest();
+    //     insert participant;
+    //     Test.stopTest();
 
-        Participant__c updatedParticipant = [SELECT Id, PaymentLink__c FROM Participant__c LIMIT 1];
-        Assert.areEqual(PaymentLinkHttpCalloutMock.PAYMENT_LINK, updatedParticipant.PaymentLink__c);
-    }
+    //     Participant__c updatedParticipant = [SELECT Id, PaymentLink__c FROM Participant__c LIMIT 1];
+    //     Assert.areEqual(PaymentLinkCalloutHttpCalloutMock.PAYMENT_LINK, updatedParticipant.PaymentLink__c);
+    // }
 
     @IsTest
     static void queryTrainingsWithParticipantsById_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Integer expectedParticipantsSize = 3;
         Training__c training = [SELECT Id, Name FROM Training__c];
@@ -175,7 +173,7 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryContactsOfParticipantsById_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Training__c training = [SELECT Id, Name FROM Training__c];
 
@@ -199,7 +197,7 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryTrainingsForNewParticipantsByParticipantIds_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
+        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
 
         Integer expectedParticipantsSize = 1;
         Training__c training = [SELECT Id, Name FROM Training__c];

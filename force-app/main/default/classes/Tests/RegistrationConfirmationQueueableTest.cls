@@ -8,7 +8,7 @@ public class RegistrationConfirmationQueueableTest {
         List<Contact> contacts = new List<Contact> {contact1, contact2};
         insert contacts;
 
-        TrainingCourse__c course =  new TrainingCourse__c(Name = 'Queueable Apex');
+        TrainingCourse__c course = new TrainingCourse__c(Name = 'Queueable Apex');
         insert course;
 
         Training__c training = new Training__c();
@@ -26,7 +26,6 @@ public class RegistrationConfirmationQueueableTest {
         participant.Training__c = training.Id;
         insert participant;
     }
-
     @IsTest
     static void queueable_UnitTest() {
         Participant__c participant = [SELECT Id, Training__c, Contact__c FROM Participant__c];

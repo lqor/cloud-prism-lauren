@@ -1,8 +1,14 @@
 @RestResource(urlMapping='/invoices/*') 
 global with sharing class InvoiceRestService {
 
+    /**
+     * Part of the Participant payment handling process, this method is invoked
+     * via an HTTP POST request. It receives invoice data as a JSON payload
+     * from the payment server and submits the queueable Apex job,
+     * "InvoicePostProcessingQueueable."
+     */
     @HttpPost
-    global static void doCreateInvoice() {
+    global static void doStartInvoiceProcessing() {
         try {
             String requestBody = RestContext.request.requestBody.toString();
             InvoiceRequestBody parsedInvoice = parseInvoice(requestBody);
@@ -16,10 +22,13 @@ global with sharing class InvoiceRestService {
 
     @TestVisible 
     private static InvoiceRequestBody parseInvoice(String requestBody) {
-        InvoiceRequestBody invoiceRequest = (InvoiceRequestBody) JSON.deserialize(requestBody, InvoiceRequestBody.class);
+        InvoiceRequestBody invoiceRequest = new InvoiceRequestBody();
 
-        if(invoiceRequest == null) {
-            return null;
+        try {
+            invoiceRequest = (InvoiceRequestBody) JSON.deserialize(requestBody, InvoiceRequestBody.class);
+        } catch(Exception e) {
+            Logger logger = new Logger();
+            logger.logException(e);
         }
 
         return invoiceRequest;

@@ -1,5 +1,6 @@
-@isTest
+@IsTest
 public class InvoiceCreationQueueableTest {
+
     @TestSetup
     static void setup() {
         Contact contact1 = new Contact(FirstName = 'Trainer', LastName = 'Name', Email = 'e@mail.com');
@@ -7,7 +8,7 @@ public class InvoiceCreationQueueableTest {
         List<Contact> contacts = new List<Contact> {contact1, contact2};
         insert contacts;
 
-        TrainingCourse__c course =  new TrainingCourse__c(Name = 'Queueable Apex');
+        TrainingCourse__c course = new TrainingCourse__c(Name = 'Queueable Apex');
         insert course;
 
         Training__c training = new Training__c();
@@ -26,7 +27,7 @@ public class InvoiceCreationQueueableTest {
         insert participant;
     }
 
-    @isTest
+    @IsTest
     static void queueable_UnitTest() {
         Participant__c participant = [SELECT Id, Training__c, Contact__c FROM Participant__c];
 
@@ -49,4 +50,5 @@ public class InvoiceCreationQueueableTest {
         Assert.areEqual('Queueable', job.JobType);
         Assert.areEqual('InvoiceCreationQueueable', job.ApexClass.Name);
     }
+
 }

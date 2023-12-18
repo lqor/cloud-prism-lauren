@@ -2,39 +2,42 @@ public with sharing class InvoiceCallout {
 
     public static final String REQUEST_METHOD_GET = 'GET';
     public static final String REQUEST_METHOD_POST = 'POST';
+    public static final String REQUEST_CONTENT_TYPE = 'application/json';
     public static final String REQUEST_BASE_URL = 'callout:MockPaymentGateway';
     public static final String REQUEST_ENDPOINT_AUTH = '/auth';
     public static final String REQUEST_ENDPOINT_INVOICES = '/invoices/';
-    public static final String REQUEST_CONTENT_TYPE = 'application/json';
 
-    public static String doInvoiceCalloutForParticipant(Training__c training, Participant__c participant) {
-        String parsedToken = doAuthorizationCalloutForPayment();
-
+    /**
+     * This method is part of the Participant payment handling process. It is
+     * invoked from the execute method on the "InvoiceCreationQueueable"
+     * queueable class. It sends the API request for generating the invoice.
+     * 
+     * @param participant   Participant that has just registered
+     * @param training      Training that a participant has registered for
+     * @return String       JSON response body with successful message
+     */
+    public static String doInvoiceCalloutForParticipant(Participant__c participant, Training__c training) {
+        String parsedToken = doAuthenticationCalloutForPayment();
         String requestBodyJSON = serializeInvoiceRequestBody(training, participant.Id, parsedToken);
 
-        HttpRequest request = new HttpRequest();
-
-        request.setMethod(REQUEST_METHOD_POST);
-        request.setEndpoint(REQUEST_BASE_URL + REQUEST_ENDPOINT_INVOICES);
-        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
-        request.setBody(requestBodyJSON);
-
+        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_INVOICES, requestBodyJSON);
         Http http = new Http();
         HttpResponse response = http.send(request);
 
         return response.getBody();
     }
 
-    public static String doAuthorizationCalloutForPayment() {
+    /**
+     * This method is part of the Participant payment handling process. It is
+     * invoked from the doInvoiceCalloutForParticipant method of this class.
+     * It sends the API request for authenticating to the payment server.
+     * 
+     * @return String       JSON response body with access token
+     */
+    public static String doAuthenticationCalloutForPayment() {
         String requestBodyJSON = serializeAuthRequestBody();
 
-        HttpRequest request = new HttpRequest();
-
-        request.setMethod(REQUEST_METHOD_POST);
-        request.setEndpoint(REQUEST_BASE_URL + REQUEST_ENDPOINT_AUTH);
-        request.setBody(requestBodyJSON);
-        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
-
+        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_AUTH, requestBodyJSON);
         Http http = new Http();
         HttpResponse response = http.send(request);
 
@@ -66,6 +69,7 @@ public with sharing class InvoiceCallout {
         return authResponse.token;
     }
 
+    @TestVisible
     private static String serializeInvoiceRequestBody(Training__c training, Id participantId, String token) {
         InvoiceRequestBody requestBodyToSerialize = new InvoiceRequestBody();
 
@@ -75,6 +79,17 @@ public with sharing class InvoiceCallout {
         requestBodyToSerialize.token = token;
 
         return JSON.serialize(requestBodyToSerialize);
+    }
+
+    private static HttpRequest generateHttpRequest(String endpoint, String body) {
+        HttpRequest request = new HttpRequest();
+
+        request.setMethod(REQUEST_METHOD_POST);
+        request.setEndpoint(REQUEST_BASE_URL + endpoint);
+        request.setBody(body);
+        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
+
+        return request;
     }
 
     private class AuthRequestBody {
