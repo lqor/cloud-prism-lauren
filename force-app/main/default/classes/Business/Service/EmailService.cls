@@ -55,8 +55,9 @@ public with sharing class EmailService {
     }
 
     /**
-     * This method is part of the Training communication process. It is called from the scheduled class,
-     * "TrainingReminderScheduled."  It returns an email to the participant about their upcoming training.
+     * This method is part of the Training communication process. It is called
+     * from the scheduled class, "TrainingReminderScheduled."  It returns an
+     * email to the participant about their upcoming training.
      * 
      * @param training      Training that is scheduled to start in 3 days
      * @param participant   Participant to be notified
@@ -76,8 +77,9 @@ public with sharing class EmailService {
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is invoked from the execute method 
-     * on the queueable class, "RegistrationConfirmationQueueable."
+     * This method is part of the Participant registration confirmation process. It is
+     * invoked from the execute method on the "RegistrationConfirmationQueueable"
+     * queueable class.
      * 
      * @param training                      Training course the new participant has registered for
      * @param participant                   Participant to be notified
@@ -122,8 +124,9 @@ public with sharing class EmailService {
     }
 
     /**
-     * This method is part of the Participant payment invoice process. It is invoked from the execute method 
-     * on the queueable class, "InvoiceCreationQueueable."
+     * This method is part of the Participant payment handling process. It is
+     * invoked from the execute method on the "InvoicePostProcessingQueueable"
+     * queueable class.
      * 
      * @param training                      Training course the new participant has registered for
      * @param participant                   Participant to be notified
@@ -163,6 +166,49 @@ public with sharing class EmailService {
                bodyStartDate + 
                bodyEndDate + 
                bodyPaymentLink + 
+               bodyClose + 
+               bodySignature;
+    }
+
+    /**
+     * This method is part of the Participant refund handling process. It is
+     * invoked from the execute method on the "RefundPollingQueueable"
+     * queueable class.
+     * 
+     * @param training                      Training course the new participant has registered for
+     * @param participant                   Participant to be notified
+     * @return Messaging.SingleEmailMessage Email with payment link
+     */
+    public static Messaging.SingleEmailMessage createParticipantRefundProcessedEmail(
+        Training__c training, 
+        Participant__c participant
+    ) {
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        String subject = 'Invoice Refund Confirmation: ' + training.TrainingCourse__r.Name;
+
+        email.setToAddresses(new List<String> {participant.Contact__r.Email});
+        email.setSubject(subject);
+        email.setHtmlBody(createParticipantRefundHtmlBody(training, participant));
+
+        return email;
+    }
+
+    private static String createParticipantRefundHtmlBody(Training__c training, Participant__c participant) {
+        String participantName = participant.Contact__r.FirstName + ' ' + participant.Contact__r.LastName;
+        String courseName = training.TrainingCourse__r.Name;
+        String startDate = String.valueOf(training.StartDate__c.format(FORMAT_DATE_TIME));
+        String endDate = String.valueOf(training.EndDate__c.format(FORMAT_DATE_TIME));
+        String paymentLink = participant.PaymentLink__c;
+
+        String bodyGreeting = '<p>Hello ' + participantName + ',</p>';
+        String bodyProcessed = '<p>This is confirmation that a full refund has been processed for Invoice #1786504.</p>';
+        String bodyReturned = '<p>The refund has been returned via the payment method you originally paid with.</p>';
+        String bodyClose = '<p>If you have any further questions, please feel free to contact us.</p>';
+        String bodySignature = '<p>Best regards,<br/>Cloud Prism</p>';
+
+        return bodyGreeting + 
+               bodyProcessed + 
+               bodyReturned + 
                bodyClose + 
                bodySignature;
     }

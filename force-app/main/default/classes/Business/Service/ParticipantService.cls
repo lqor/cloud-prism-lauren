@@ -91,7 +91,7 @@ public with sharing class ParticipantService {
             participantIds
         );
 
-        Id regJobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
+        Id registrationJobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
     }
 
     /**
@@ -114,7 +114,59 @@ public with sharing class ParticipantService {
             participantIds
         );
 
-        Id invJobId = System.enqueueJob(new InvoiceCreationQueueable(trainingsWithParticipants));
+        Id invoiceJobId = System.enqueueJob(new InvoiceCreationQueueable(trainingsWithParticipants));
+    }
+
+    /**
+     * This method is part of the Participant refund handling process. It is
+     * invoked from the requestRefundAction method in the controller class, 
+     * "RequestRefundController." It sends a callout to the payment server to
+     * generate a refund for a participant.
+     * 
+     * @param participantId Id of participant requesting the refund
+     * @param reason        Reason for requesting the refund
+     */
+    public void initiateRefundOrder(Id participantId, String reason) {
+        TrainingRefund__c refund = new TrainingRefund__c();
+        String refundId;
+
+        TrainingInvoice__c invoice = TrainingInvoiceQueries.queryInvoiceByParticipantId(participantId);
+
+        refund.Amount__c = invoice.GrandTotal__c;
+        refund.InvoiceId__c = invoice.InvoiceId__c;
+        refund.Participant__c = invoice.Participant__c;
+        refund.Reason__c = reason;
+
+        try {
+            refundId = RefundCallout.doRefundCalloutForParticipant(refund);
+        } catch(Exception e) {
+            Logger logger = new Logger();
+            logger.logException(e);
+        }
+
+        if(refundId != null) {
+            refund.Status__c = 'Pending';
+            refund.RefundId__c = refundId;
+            
+            insert refund;
+
+            Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundId), 1);
+        }
+    }
+
+    /**
+     * This method is part of the Participant refund handling process. It is
+     * invoked from the initiateRefundOrder method of this "ParticipantService"
+     * class. It submits the queueable class, "RefundPollingQueueable," as a
+     * job on the queue.
+     * 
+     * @param refundId      Id of the refund to check on
+     * @return Id           Id of the enqueued job
+     */
+    private Id enqueueRefundPollingJob(String refundId) {
+        System.debug('ParticipantService enqueueRefundPollingJob()');
+
+        return System.enqueueJob(new RefundPollingQueueable(refundId));
     }
 
     /**
@@ -238,8 +290,9 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant creation process. It is called from the addNewParticipant method 
-     * in the controller class, "ParticipantTableController." 
+     * This method is part of the Participant creation process. It is called
+     * from the addNewParticipant method in the controller class, 
+     * "ParticipantTableController." 
      * 
      * @param trainingId        Id of the training to add the participant to
      * @param participant       Participant to be added

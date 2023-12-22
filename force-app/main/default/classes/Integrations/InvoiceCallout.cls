@@ -81,7 +81,7 @@ public with sharing class InvoiceCallout {
         return JSON.serialize(requestBodyToSerialize);
     }
 
-    private static HttpRequest generateHttpRequest(String endpoint, String body) {
+    public static HttpRequest generateHttpRequest(String endpoint, String body) {
         HttpRequest request = new HttpRequest();
 
         request.setMethod(REQUEST_METHOD_POST);
