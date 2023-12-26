@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>TrainingRefundCompactLayout</fullName>
+    <fields>Name</fields>
+    <fields>InvoiceId__c</fields>
+    <fields>RefundId__c</fields>
+    <fields>Participant__c</fields>
+    <fields>Amount__c</fields>
+    <fields>Status__c</fields>
+    <fields>Reason__c</fields>
+    <fields>VerificationId__c</fields>
+    <fields>Comments__c</fields>
+    <label>Training Refund Compact Layout</label>
+</CompactLayout>

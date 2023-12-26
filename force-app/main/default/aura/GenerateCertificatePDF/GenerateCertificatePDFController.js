@@ -1,13 +1,27 @@
 ({
-    handleClick : function(component, event, helper) {
-        var action = component.get("c.saveCertificates");
+    doInit : function(component) {
+        let action = component.get("c.getVfUrl");
 
-        action.setParams({ recordId : component.get("v.recordId") });
+        action.setParams({ trainingId : component.get("v.recordId") });
         action.setCallback(this, function(response) {
-            var state = response.getState();
+            let state = response.getState();
 
             if(state === "SUCCESS") {
-                var toastEvent = $A.get("e.force:showToast");
+                component.set("v.vfUrl", response.getReturnValue());
+            }
+        });
+
+        $A.enqueueAction(action);
+    },
+    handleClick : function(component, event, helper) {
+        let action = component.get("c.saveCertificates");
+
+        action.setParams({ trainingId : component.get("v.recordId") });
+        action.setCallback(this, function(response) {
+            let state = response.getState();
+
+            if(state === "SUCCESS") {
+                let toastEvent = $A.get("e.force:showToast");
 
                 toastEvent.setParams({
                     title: "Success!",
@@ -22,8 +36,5 @@
         });
 
         $A.enqueueAction(action);
-        
-        JSON.stringify(event);
-        JSON.stringify(helper);
     }
 })

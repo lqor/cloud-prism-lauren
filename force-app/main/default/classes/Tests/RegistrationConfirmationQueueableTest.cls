@@ -3,14 +3,12 @@ public class RegistrationConfirmationQueueableTest {
 
     @TestSetup
     static void setup() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkHttpCalloutMock());
-
         Contact contact1 = new Contact(FirstName = 'Trainer', LastName = 'Name', Email = 'e@mail.com');
         Contact contact2 = new Contact(FirstName = 'Participant', LastName = 'Name', Email = 'e@mail.com');
         List<Contact> contacts = new List<Contact> {contact1, contact2};
         insert contacts;
 
-        TrainingCourse__c course =  new TrainingCourse__c(Name = 'Queueable Apex');
+        TrainingCourse__c course = new TrainingCourse__c(Name = 'Queueable Apex');
         insert course;
 
         Training__c training = new Training__c();
@@ -28,7 +26,6 @@ public class RegistrationConfirmationQueueableTest {
         participant.Training__c = training.Id;
         insert participant;
     }
-
     @IsTest
     static void queueable_UnitTest() {
         Participant__c participant = [SELECT Id, Training__c, Contact__c FROM Participant__c];
@@ -39,7 +36,7 @@ public class RegistrationConfirmationQueueableTest {
         Set<Id> participantIds = new Set<Id>();
         participantIds.add(participant.Contact__c);
 
-        List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsById(trainingIds, participantIds);
+        List<Training__c> trainings = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(participantIds);
 
         Test.startTest();
         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
@@ -52,23 +49,5 @@ public class RegistrationConfirmationQueueableTest {
         Assert.areEqual('Queueable', job.JobType);
         Assert.areEqual('RegistrationConfirmationQueueable', job.ApexClass.Name);
     }
-
-    // @IsTest
-    // static void queueable_UnitTest_NullParticipant() {
-    //     List<Training__c> trainings = [
-    //         SELECT Id, Name, (SELECT Id FROM Participants__r WHERE Id = 'a038b00000XAU4QAAX') FROM Training__c];
-    //         System.debug(trainings);
-
-    //     try {
-    //         Test.startTest();
-    //         Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainings));
-    //         Test.stopTest();
-    //         System.debug(jobId);
-
-    //         Assert.fail();
-    //     } catch(PaymentLinkCallout.NullParticipantException e) {
-    //         Assert.isTrue(true);
-    //     }
-    // }
 
 }

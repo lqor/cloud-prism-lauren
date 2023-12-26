@@ -4,27 +4,18 @@ public with sharing class PdfGeneratorControllerAura {
     public String vfUrl { get; set; }
 
     @AuraEnabled
-    public static List<Participant__c> participants { get; set; }
-
-    public PdfGeneratorControllerAura() {
-        Id recordId = ApexPages.currentPage().getParameters().get('id');
-        SObjectType objType = recordId.getSObjectType();
-
-        if(String.valueOf(objType) == 'Participant__c') {
-            participants = ParticipantQueries.queryParticipantAndContactById(recordId);
-        } else {
-            participants = ParticipantQueries.queryParticipantsByTrainingId(recordId);
-        }
+    public static String getVfUrl(Id trainingId) {
+        return '/apex/ParticipantCertificate?trainingId=' + trainingId;
     }
 
     @AuraEnabled
-    public static void saveCertificates(Id recordId) {
+    public static void saveCertificates(Id trainingId) {
         List<ContentVersion> files = new List<ContentVersion>();
-        participants = ParticipantQueries.queryParticipantsByTrainingId(recordId);
+        List<Participant__c> participants = ParticipantQueries.queryParticipantsByTrainingId(trainingId);
 
         for(Participant__c participant : participants) {
             PageReference pdfPage = Page.ParticipantCertificate;
-            pdfPage.getParameters().put('id', participant.Id);
+            pdfPage.getParameters().put('participantId', participant.Id);
 
             Blob content;
 
@@ -52,11 +43,6 @@ public with sharing class PdfGeneratorControllerAura {
         if(!files.isEmpty()) {
             insert files;
         }
-    }
-
-    @AuraEnabled
-    public static String getVfUrl(Id trainingId) {
-        return '/apex/ParticipantCertificate?Id=' + trainingId;
     }
 
 }

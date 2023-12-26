@@ -1,16 +1,18 @@
 public with sharing class ParticipantService {
 
     public static final String PARTICIPANT_STATUS_ACTIVE = 'Active';
+    public static final String PARTICIPANT_STATUS_IN_QUEUE = 'In Queue';
     public static final String PARTICIPANT_STATUS_PARTICIPATED = 'Participated';
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
 
     /**
-     * This method is part of the Participant organization process. It is called from the trigger handler class, 
-     * "ParticipantTriggerHandler." The result is an error message indicating the duplicate participant cannot 
-     * be saved.
+     * This method is part of the Participant organization process. It is
+     * invoked from the beforeInsert method on the "ParticipantTriggerHandler"
+     * trigger handler class. The result is an error message indicating the
+     * duplicate participant cannot be saved.
      * 
-     * @param newlist   List of participants
-     * @param oldMap    Old map of participants, always null
+     * @param newlist       List of participants
+     * @param oldMap        Old map of participants, always null
      */
     public void preventDuplicateParticipantOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> trainingIds = new Set<Id>();
@@ -43,12 +45,14 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Training restaurant commission calculation process. It is called from 
-     * the trigger handler class, "ParticipantTriggerHandler." It recalculates the result of the restaurant 
-     * commission when a participant is added or deleted and updates the trainings.
+     * This method is part of the Training restaurant commission calculation
+     * process. It is invoked from the afterInsert method on the trigger handler
+     * class, "ParticipantTriggerHandler." It recalculates the result of the
+     * restaurant commission when a participant is added or deleted and updates
+     * the trainings.
      * 
-     * @param newlist   List of participants
-     * @param oldMap    Old map of participants
+     * @param newlist       List of participants
+     * @param oldMap        Old map of participants
      */
     public void recalculateCommissionOnTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         TrainingService trainingService = new TrainingService();
@@ -67,36 +71,101 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant registration confirmation process. It is called from the trigger 
-     * handler class, "ParticipantTriggerHandler." It submits the queueable class, "RegistrationConfirmationQueueable," 
-     * as a job on the queue.
+     * This method is part of the Participant registration confirmation process.
+     * It is invoked from the afterInsert method on the trigger handler class,
+     * "ParticipantTriggerHandler." It submits the queueable class,
+     * "RegistrationConfirmationQueueable," as a job on the queue.
      * 
-     * @param newlist   List of participants
-     * @param oldMap    Old map of participants, always null
+     * @param newlist       List of participants
+     * @param oldMap        Old map of participants, always null
      */
-    public void sendRegistrationConfirmationEmail(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
-        Set<Id> trainingIds = new Set<Id>();
+    public void enqueueRegistrationConfirmationJob(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> participantIds = new Set<Id>();
 
         for(Participant__c participant : newList) {
             participantIds.add(participant.Id);
-            trainingIds.add(participant.Training__c);
         }
 
-        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsById(
-            trainingIds, 
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(
             participantIds
         );
 
-        Id jobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
+        Id registrationJobId = System.enqueueJob(new RegistrationConfirmationQueueable(trainingsWithParticipants));
     }
 
     /**
-     * This method is part of the Training roll-up summary of participants. It is called from the trigger 
-     * handler class, "ParticipantTriggerHandler." It counts participants and updates the field on trainings.
+     * This method is part of the Participant payment handling process. It is
+     * invoked from the afterInsert method on the trigger handler class, 
+     * "ParticipantTriggerHandler." It submits the "InvoiceCreationQueueable"
+     * queueable class, as a job on the queue.
      * 
-     * @param newlist   List of participants
-     * @param oldMap    Old map of participants, always null
+     * @param newlist       List of participants
+     * @param oldMap        Old map of participants, always null
+     */
+    public void enqueueInvoiceCreationJob(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
+        Set<Id> participantIds = new Set<Id>();
+
+        for(Participant__c participant : newList) {
+            participantIds.add(participant.Id);
+        }
+
+        List<Training__c> trainingsWithParticipants = TrainingQueries.queryTrainingsForNewParticipantsByParticipantIds(
+            participantIds
+        );
+
+        Id invoiceJobId = System.enqueueJob(new InvoiceCreationQueueable(trainingsWithParticipants));
+    }
+
+    /**
+     * This method is part of the Participant refund handling process. It is
+     * invoked from the requestRefundAction method in the controller class,
+     * "RequestRefundController." It sends a callout to the payment server to
+     * generate a refund for a participant.
+     * 
+     * @param participantId Id of the participant requesting the refund
+     * @param reason        Reason for requesting the refund
+     * @return String       Refund id as confirmation the order was received
+     */
+    public String initiateRefundOrder(Id participantId, String reason) {
+        TrainingRefund__c refund = new TrainingRefund__c();
+        TrainingInvoice__c invoice = TrainingInvoiceQueries.queryInvoiceByParticipantId(participantId);
+        RefundCallout.RefundResponseBody refundResponse = new RefundCallout.RefundResponseBody();
+        String refundId;
+
+        refund.Amount__c = invoice.GrandTotal__c;
+        refund.InvoiceId__c = invoice.InvoiceId__c;
+        refund.Participant__c = invoice.Participant__c;
+        refund.Reason__c = reason;
+        refund.RefundDate__c = System.today();
+
+        try {
+            refundResponse = RefundCallout.doRefundCalloutForParticipant(refund);
+            refundId = refundResponse.refund_id;
+        } catch(Exception e) {
+            Logger logger = new Logger();
+            logger.logException(e);
+        }
+
+        if(refundId != null) {
+            refund.Status__c = 'Pending';
+            refund.RefundId__c = refundId;
+
+            insert refund;
+
+            Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundResponse), 1);
+        }
+
+        return refundId;
+    }
+
+    /**
+     * This method is part of the Training roll-up summary of participants. It
+     * is invoked from the afterInsert method on the trigger handler class,
+     * "ParticipantTriggerHandler." It counts participants and updates the field
+     * on trainings.
+     * 
+     * @param newlist       List of participants
+     * @param oldMap        Old map of participants, always null
      */
     public void countNumberOfParticipantsInTrainings(List<Participant__c> newList, Map<Id, Participant__c> oldMap) {
         Set<Id> trainingIds = new Set<Id>();
@@ -117,12 +186,15 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant to ERP syncing process. It is called from the invocable method, 
-     * sendParticipantsToERP, in the "ParticipantSync" class. It is also called from the execute method in the 
-     * batchable class, "ParticipantSyncBatch." It makes the ERP callout to send participants to the ERP system, 
-     * updates each record with the ERP Id, and returns the list of participants.
+     * This method is part of the Participant to ERP syncing process. It is
+     * called from the invocable method, sendParticipantsToERP, in the 
+     * "ParticipantSync" class. It is also called from the execute method in
+     * the batchable class, "ParticipantSyncBatch." It makes the ERP callout to
+     * send participants to the ERP system, updates each record with the ERP Id,
+     * and returns the list of participants.
      * 
-     * @param participants   List of participants to send to ERP system
+     * @param participants          List of participants to send to the ERP system
+     * @return List<Participant__c> List of participants returned from the ERP system
      */
     public List<Participant__c> sendParticipantToERP(List<Participant__c> participants) {
         List<Participant__c> participantsToReturn = new List<Participant__c>();
@@ -135,7 +207,7 @@ public with sharing class ParticipantService {
             try {
                 responseBody = ERPCallout.doERPCalloutForParticipant(participantJSON);
             } catch(ERPCallout.EmptyParticipantException e) {
-                logger.logCalloutException(e);
+                logger.logERPCalloutException(e);
             } catch(Exception e) {
                 logger.logException(e);
             }
@@ -150,12 +222,14 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant from ERP import process. It is called from the getParticipantByErpId 
-     * method in the controller class, "ParticipantTableController." It makes the ERP callout to get a participant 
-     * from the ERP system and returns the participant name.
+     * This method is part of the Participant from ERP import process. It is
+     * invoked from the getParticipantByErpId method in the controller class,
+     * "ParticipantTableController." It makes the ERP callout to get a
+     * participant from the ERP system.
      * 
      * @param trainingId    Id of the training to add the participant to
      * @param erpId         Erp id of the participant to look up
+     * @return String       Participant name from the ERP system
      */
     public String getParticipantFromERP(Id trainingId, String erpId) {
         String responseBody = '';
@@ -164,7 +238,7 @@ public with sharing class ParticipantService {
         try {
             responseBody = ERPCallout.doERPCalloutForParticipantByErpId(erpId);
         } catch(ERPCallout.EmptyErpIdException e) {
-            logger.logCalloutException(e);
+            logger.logERPCalloutException(e);
         } catch(Exception e) {
             logger.logException(e);
         }
@@ -175,12 +249,15 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant from ERP import process. It is called from the getParticipantByErpId 
-     * method in the controller class, "ParticipantTableController." It returns a new participant record added to 
-     * the new training.
+     * This method is part of the Participant from ERP import process. It is
+     * invoked from the getParticipantByErpId method in the controller class,
+     * "ParticipantTableController." It returns a new participant record added
+     * to the new training.
      * 
      * @param trainingId        Id of the training to add the participant to
      * @param priorParticipant  Participant returned from the ERP system
+     * @return Participant__c   Participant record added to the new training
+
      */
     public Participant__c insertNewParticipantFromPrior(Id trainingId, Participant__c priorParticipant) {
         Participant__c newParticipant = new Participant__c();
@@ -202,12 +279,13 @@ public with sharing class ParticipantService {
     }
 
     /**
-     * This method is part of the Participant creation process. It is called from the addNewParticipant method 
-     * in the controller class, "ParticipantTableController." It returns a new participant record added to the 
-     * new training.
+     * This method is part of the Participant creation process. It is called
+     * from the addNewParticipant method in the controller class, 
+     * "ParticipantTableController."
      * 
-     * @param trainingId    Id of the training to add the participant to
-     * @param participant   Participant to be added
+     * @param trainingId        Id of the training to add the participant to
+     * @param participant       Participant to be added
+     * @return Participant__c   Participant record added to the new training
      */
     public Participant__c insertNewParticipant(Id trainingId, Participant__c participant) {
         participant.Training__c = trainingId;

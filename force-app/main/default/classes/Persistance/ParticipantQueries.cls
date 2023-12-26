@@ -38,4 +38,13 @@ public with sharing class ParticipantQueries {
         ];
     }
 
+    public static Participant__c queryParticipantByInvoiceId(String invoiceId) {
+        return [
+            SELECT Name, Status__c 
+            FROM Participant__c 
+            WHERE Id IN (SELECT Participant__c FROM TrainingInvoice__c WHERE InvoiceId__c = :invoiceId) 
+            LIMIT 1
+        ];
+    }
+
 }
