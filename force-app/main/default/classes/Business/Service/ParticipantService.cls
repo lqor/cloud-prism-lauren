@@ -2,15 +2,14 @@ public with sharing class ParticipantService {
 
     public static final String PARTICIPANT_STATUS_ACTIVE = 'Active';
     public static final String PARTICIPANT_STATUS_IN_QUEUE = 'In Queue';
-
     public static final String PARTICIPANT_STATUS_PARTICIPATED = 'Participated';
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
 
     /**
-     * This method is part of the Participant organization process. It is invoked
-     * from the beforeInsert method on the "ParticipantTriggerHandler" trigger
-     * handler class. The result is an error message indicating the duplicate
-     * participant cannot be saved.
+     * This method is part of the Participant organization process. It is
+     * invoked from the beforeInsert method on the "ParticipantTriggerHandler"
+     * trigger handler class. The result is an error message indicating the
+     * duplicate participant cannot be saved.
      * 
      * @param newlist       List of participants
      * @param oldMap        Old map of participants, always null
@@ -97,8 +96,8 @@ public with sharing class ParticipantService {
     /**
      * This method is part of the Participant payment handling process. It is
      * invoked from the afterInsert method on the trigger handler class, 
-     * "ParticipantTriggerHandler." It submits the queueable class, 
-     * "InvoiceCreationQueueable," as a job on the queue.
+     * "ParticipantTriggerHandler." It submits the "InvoiceCreationQueueable"
+     * queueable class, as a job on the queue.
      * 
      * @param newlist       List of participants
      * @param oldMap        Old map of participants, always null
@@ -119,26 +118,29 @@ public with sharing class ParticipantService {
 
     /**
      * This method is part of the Participant refund handling process. It is
-     * invoked from the requestRefundAction method in the controller class, 
+     * invoked from the requestRefundAction method in the controller class,
      * "RequestRefundController." It sends a callout to the payment server to
      * generate a refund for a participant.
      * 
-     * @param participantId Id of participant requesting the refund
+     * @param participantId Id of the participant requesting the refund
      * @param reason        Reason for requesting the refund
+     * @return String       Refund id as confirmation the order was received
      */
-    public void initiateRefundOrder(Id participantId, String reason) {
+    public String initiateRefundOrder(Id participantId, String reason) {
         TrainingRefund__c refund = new TrainingRefund__c();
-        String refundId;
-
         TrainingInvoice__c invoice = TrainingInvoiceQueries.queryInvoiceByParticipantId(participantId);
+        RefundCallout.RefundResponseBody refundResponse = new RefundCallout.RefundResponseBody();
+        String refundId;
 
         refund.Amount__c = invoice.GrandTotal__c;
         refund.InvoiceId__c = invoice.InvoiceId__c;
         refund.Participant__c = invoice.Participant__c;
         refund.Reason__c = reason;
+        refund.RefundDate__c = System.today();
 
         try {
-            refundId = RefundCallout.doRefundCalloutForParticipant(refund);
+            refundResponse = RefundCallout.doRefundCalloutForParticipant(refund);
+            refundId = refundResponse.refund_id;
         } catch(Exception e) {
             Logger logger = new Logger();
             logger.logException(e);
@@ -147,26 +149,13 @@ public with sharing class ParticipantService {
         if(refundId != null) {
             refund.Status__c = 'Pending';
             refund.RefundId__c = refundId;
-            
+
             insert refund;
 
-            Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundId), 1);
+            Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundResponse), 1);
         }
-    }
 
-    /**
-     * This method is part of the Participant refund handling process. It is
-     * invoked from the initiateRefundOrder method of this "ParticipantService"
-     * class. It submits the queueable class, "RefundPollingQueueable," as a
-     * job on the queue.
-     * 
-     * @param refundId      Id of the refund to check on
-     * @return Id           Id of the enqueued job
-     */
-    private Id enqueueRefundPollingJob(String refundId) {
-        System.debug('ParticipantService enqueueRefundPollingJob()');
-
-        return System.enqueueJob(new RefundPollingQueueable(refundId));
+        return refundId;
     }
 
     /**
@@ -218,7 +207,7 @@ public with sharing class ParticipantService {
             try {
                 responseBody = ERPCallout.doERPCalloutForParticipant(participantJSON);
             } catch(ERPCallout.EmptyParticipantException e) {
-                logger.logCalloutException(e);
+                logger.logERPCalloutException(e);
             } catch(Exception e) {
                 logger.logException(e);
             }
@@ -249,7 +238,7 @@ public with sharing class ParticipantService {
         try {
             responseBody = ERPCallout.doERPCalloutForParticipantByErpId(erpId);
         } catch(ERPCallout.EmptyErpIdException e) {
-            logger.logCalloutException(e);
+            logger.logERPCalloutException(e);
         } catch(Exception e) {
             logger.logException(e);
         }
@@ -292,7 +281,7 @@ public with sharing class ParticipantService {
     /**
      * This method is part of the Participant creation process. It is called
      * from the addNewParticipant method in the controller class, 
-     * "ParticipantTableController." 
+     * "ParticipantTableController."
      * 
      * @param trainingId        Id of the training to add the participant to
      * @param participant       Participant to be added

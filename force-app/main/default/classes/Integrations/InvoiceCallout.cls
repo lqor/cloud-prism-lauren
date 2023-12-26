@@ -8,31 +8,12 @@ public with sharing class InvoiceCallout {
     public static final String REQUEST_ENDPOINT_INVOICES = '/invoices/';
 
     /**
-     * This method is part of the Participant payment handling process. It is
-     * invoked from the execute method on the "InvoiceCreationQueueable"
-     * queueable class. It sends the API request for generating the invoice.
+     * This method is part of the Participant payment/refund handling process.
+     * It is invoked from the doInvoiceCalloutForParticipant method of this
+     * class and the doRefundCalloutForParticipant method of the RefundCallout
+     * class. It sends the API request for authenticating to the payment server.
      * 
-     * @param participant   Participant that has just registered
-     * @param training      Training that a participant has registered for
-     * @return String       JSON response body with successful message
-     */
-    public static String doInvoiceCalloutForParticipant(Participant__c participant, Training__c training) {
-        String parsedToken = doAuthenticationCalloutForPayment();
-        String requestBodyJSON = serializeInvoiceRequestBody(training, participant.Id, parsedToken);
-
-        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_INVOICES, requestBodyJSON);
-        Http http = new Http();
-        HttpResponse response = http.send(request);
-
-        return response.getBody();
-    }
-
-    /**
-     * This method is part of the Participant payment handling process. It is
-     * invoked from the doInvoiceCalloutForParticipant method of this class.
-     * It sends the API request for authenticating to the payment server.
-     * 
-     * @return String       JSON response body with access token
+     * @return String       Parsed access token
      */
     public static String doAuthenticationCalloutForPayment() {
         String requestBodyJSON = serializeAuthRequestBody();
@@ -59,6 +40,25 @@ public with sharing class InvoiceCallout {
         return JSON.serialize(requestBodyToSerialize);
     }
 
+    /**
+     * This method is part of the Participant payment/refund handling process.
+     * It is invoked from the doInvoiceCalloutForParticipant method of this
+     * class and the doRefundCalloutForParticipant method of the RefundCallout
+     * class. It creates the request body.
+     * 
+     * @return String       Http request body
+     */
+    public static HttpRequest generateHttpRequest(String endpoint, String body) {
+        HttpRequest request = new HttpRequest();
+
+        request.setMethod(REQUEST_METHOD_POST);
+        request.setEndpoint(REQUEST_BASE_URL + endpoint);
+        request.setBody(body);
+        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
+
+        return request;
+    }
+
     private static String parseAuthToken(String responseBody) {
         AuthResponseBody authResponse = (AuthResponseBody) JSON.deserialize(responseBody, AuthResponseBody.class);
 
@@ -67,6 +67,26 @@ public with sharing class InvoiceCallout {
         }
 
         return authResponse.token;
+    }
+
+    /**
+     * This method is part of the Participant payment handling process. It is
+     * invoked from the execute method on the "InvoiceCreationQueueable"
+     * queueable class. It sends the API request for generating the invoice.
+     * 
+     * @param participant   Participant that has just registered
+     * @param training      Training that a participant has registered for
+     * @return String       JSON response body with successful message
+     */
+    public static String doInvoiceCalloutForParticipant(Participant__c participant, Training__c training) {
+        String parsedToken = doAuthenticationCalloutForPayment();
+        String requestBodyJSON = serializeInvoiceRequestBody(training, participant.Id, parsedToken);
+
+        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_INVOICES, requestBodyJSON);
+        Http http = new Http();
+        HttpResponse response = http.send(request);
+
+        return response.getBody();
     }
 
     @TestVisible
@@ -79,17 +99,6 @@ public with sharing class InvoiceCallout {
         requestBodyToSerialize.token = token;
 
         return JSON.serialize(requestBodyToSerialize);
-    }
-
-    public static HttpRequest generateHttpRequest(String endpoint, String body) {
-        HttpRequest request = new HttpRequest();
-
-        request.setMethod(REQUEST_METHOD_POST);
-        request.setEndpoint(REQUEST_BASE_URL + endpoint);
-        request.setBody(body);
-        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
-
-        return request;
     }
 
     private class AuthRequestBody {

@@ -2,7 +2,7 @@ public with sharing class RefundCallout {
 
     public virtual class RefundCalloutException extends Exception {}
     public class EmptyRefundException extends RefundCalloutException {}
-    public class EmptyRefundIdException extends RefundCalloutException {}
+    public class EmptyRefundIdOrTokenException extends RefundCalloutException {}
 
     public static final String REQUEST_METHOD_GET = 'GET';
     public static final String REQUEST_CONTENT_TYPE = 'application/json';
@@ -17,9 +17,9 @@ public with sharing class RefundCallout {
      * class. It sends the API request for generating the refund.
      * 
      * @param refund        Refund details to send in the refund order
-     * @return String       Refund id confirmation that the order was received
+     * @return String       Refund id as confirmation the order was received
      */
-    public static String doRefundCalloutForParticipant(TrainingRefund__c refund) {
+    public static RefundResponseBody doRefundCalloutForParticipant(TrainingRefund__c refund) {
         if(refund == null) {
             throw new EmptyRefundException('Training Refund is null');
         }
@@ -32,7 +32,7 @@ public with sharing class RefundCallout {
         Http http = new Http();
         HttpResponse response = http.send(request);
 
-        return parseRefundId(response.getBody());
+        return parseRefundResponse(response.getBody(), parsedToken);
     }
 
     @TestVisible
@@ -48,6 +48,14 @@ public with sharing class RefundCallout {
         return JSON.serialize(requestBodyToSerialize);
     }
 
+    private static RefundResponseBody parseRefundResponse(String responseBody, String token) {
+        RefundResponseBody refundResponse = (RefundResponseBody) JSON.deserialize(responseBody, RefundResponseBody.class);
+
+        refundResponse.token = token;
+
+        return refundResponse;
+    }
+
     /**
      * This method is part of the Participant refund handling process. It is
      * invoked from the execute method on the queueable class, 
@@ -55,21 +63,21 @@ public with sharing class RefundCallout {
      * refund has been processed.
      * 
      * @param refundId      Id of refund order to check on
-     * @return String       Status of refund order 
+     * @param token         Access token from the payment server
+     * @return String       Status of refund order
      */
-    public static String doGetRefundCalloutForParticipantByRefundId(String refundId) {
-        if(refundId == null || refundId == '') {
-            throw new EmptyRefundIdException('Refund ID is empty');
+    public static String doGetRefundCalloutForParticipantByRefundId(String refundId, String token) {
+        if(refundId == null || refundId == '' || token == null || token == '') {
+            throw new EmptyRefundIdOrTokenException('Refund ID or Token is empty');
         }
 
-        String tokenParameter = REQUEST_TOKEN_QUERY_PARAM + InvoiceCallout.doAuthenticationCalloutForPayment();
+        String tokenParameter = REQUEST_TOKEN_QUERY_PARAM + token;
 
         HttpRequest request = new HttpRequest();
 
         request.setMethod(REQUEST_METHOD_GET);
         request.setEndpoint(REQUEST_BASE_URL + REQUEST_ENDPOINT_REFUNDS + refundId + tokenParameter);
         request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
-        System.debug('request.getEndpoint: ' + request.getEndpoint());
 
         Http http = new Http();
         HttpResponse response = http.send(request);
@@ -77,17 +85,7 @@ public with sharing class RefundCallout {
         return parseRefundStatus(response.getBody());
     }
 
-    public static String parseRefundId(String responseBody) {
-        RefundResponseBody refundResponse = (RefundResponseBody) JSON.deserialize(responseBody, RefundResponseBody.class);
-
-        if(refundResponse.refund_id == null) {
-            refundResponse.refund_id = '';
-        }
-
-        return refundResponse.refund_id;
-    }
-
-    public static String parseRefundStatus(String responseBody) {
+    private static String parseRefundStatus(String responseBody) {
         RefundResponseBody refundResponse = (RefundResponseBody) JSON.deserialize(responseBody, RefundResponseBody.class);
 
         if(refundResponse.status == null || refundResponse.status == 'initiated') {
@@ -99,20 +97,19 @@ public with sharing class RefundCallout {
 
     /**
      * This method is part of the Participant refund handling process. It is
-     * invoked from the execute method on the "RefundPollingQueueable" queueable 
+     * invoked from the execute method on the "RefundPollingQueueable" queueable
      * class. It sends the API request for the refund verification.
      * 
      * @param refundId      Id of refund order to check on
-     * @return String       Refund verification id confirmation that the order was verified
+     * @param token         Access token from the payment server
+     * @return String       Refund verification id as confirmation the order was verified
      */
-    public static String doRefundVerificationCalloutForParticipant(String refundId) {
-        if(refundId == null || refundId == '') {
-            throw new EmptyRefundIdException('Refund ID is empty');
+    public static String doRefundVerificationCalloutForParticipant(String refundId, String token) {
+        if(refundId == null || refundId == '' || token == null || token == '') {
+            throw new EmptyRefundIdOrTokenException('Refund ID or Token is empty');
         }
 
-        String parsedToken = InvoiceCallout.doAuthenticationCalloutForPayment();
-
-        String requestBodyJSON = serializeVerificationRequestBody(refundId, parsedToken);
+        String requestBodyJSON = serializeVerificationRequestBody(refundId, token);
 
         HttpRequest request = InvoiceCallout.generateHttpRequest(REQUEST_ENDPOINT_VERIFICATIONS, requestBodyJSON);
         Http http = new Http();
@@ -131,7 +128,7 @@ public with sharing class RefundCallout {
         return JSON.serialize(requestBodyToSerialize);
     }
 
-    public static String parseRefundVerificationId(String responseBody) {
+    private static String parseRefundVerificationId(String responseBody) {
         VerificationResponseBody verificationResponse = (VerificationResponseBody) JSON.deserialize(
             responseBody, 
             VerificationResponseBody.class
@@ -158,6 +155,7 @@ public with sharing class RefundCallout {
         public string message;
         public String status;
         public String refund_id;
+        public String token;
     }
 
     private class VerificationRequestBody {

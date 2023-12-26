@@ -1,14 +1,15 @@
 public with sharing class RefundPollingQueueable implements Queueable, Database.AllowsCallouts {
 
     private static final Integer MAX_RETRY_ATTEMPTS = 3;
-    public static final String REFUND_STATUS_REFUNDED = 'Refunded';
-    public static final String REFUND_STATUS_FAILED = 'Failed';
 
-
+    private RefundCallout.RefundResponseBody refundResponse;
     private String refundId;
+    private String token;
 
-    public RefundPollingQueueable(String refundId) {
-        this.refundId = refundId;
+    public RefundPollingQueueable(RefundCallout.RefundResponseBody refundResponse) {
+        this.refundResponse = refundResponse;
+        this.refundId = refundResponse.refund_id;
+        this.token = refundResponse.token;
     }
 
     /**
@@ -18,16 +19,10 @@ public with sharing class RefundPollingQueueable implements Queueable, Database.
      * generate an refund for the participant.
      */
     public void execute(QueueableContext context) {
-        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+        TrainingRefund__c refund = TrainingRefundQueries.queryRefundByRefundId(refundId);
         Integer retryCount = AsyncInfo.getCurrentQueueableStackDepth();
         Integer delayInMinutes;
-        String responseStatus = '';
-
-        TrainingRefund__c refund = [
-            SELECT Id, Status__c, VerificationId__c, Participant__c 
-            FROM TrainingRefund__c 
-            WHERE RefundId__c = :refundId
-        ];
+        String refundStatus = '';
 
         if(retryCount == 1) {
             delayInMinutes = 3;
@@ -36,41 +31,20 @@ public with sharing class RefundPollingQueueable implements Queueable, Database.
         }
 
         try {
-            responseStatus = RefundCallout.doGetRefundCalloutForParticipantByRefundId(refundId);
+            refundStatus = RefundCallout.doGetRefundCalloutForParticipantByRefundId(refundId, token);
         } catch(Exception e) {
+            refund.Status__c = RefundPostProcessingQueueable.REFUND_STATUS_FAILED;
+
             Logger logger = new Logger();
             logger.logException(e);
-            refund.Status__c = REFUND_STATUS_FAILED;
         }
 
-        if(retryCount < MAX_RETRY_ATTEMPTS && responseStatus == '') {
-            System.enqueueJob(new RefundPollingQueueable(refundId), delayInMinutes);
-            
+        if(retryCount < MAX_RETRY_ATTEMPTS && refundStatus != RefundPostProcessingQueueable.REFUND_STATUS_REFUNDED) {
+            System.enqueueJob(new RefundPollingQueueable(refundResponse), delayInMinutes);
+
             retryCount++;
-        } else if (responseStatus == REFUND_STATUS_REFUNDED) {
-            refund.Status__c = REFUND_STATUS_REFUNDED;
-            refund.verificationId__c = RefundCallout.doRefundVerificationCalloutForParticipant(refundId);
-
-            // set Invoice record Status to Refunded
-
-            Training__c training = TrainingQueries.queryTrainingByParticipantId(refund.Participant__c);
-            Participant__c participant = new Participant__c();
-            participant = training.Participants__r[0];
-
-            emails.add(EmailService.createParticipantRefundProcessedEmail(training, participant));
         } else {
-            refund.Status__c = REFUND_STATUS_FAILED;
-
-            // set Invoice record Status to Failed
-            // EmailService.cls - createRefundOrderFailureEmail()
-            // Notify admin, Refund could not be refunded, include record link
-            // Logger.cls - log failure, use new method to differentiate between system exceptions and refund notification
-        }
-
-        update refund;
-
-        if(!emails.isEmpty()) {
-            Messaging.sendEmail(emails);
+            System.enqueueJob(new RefundPostProcessingQueueable(refund, refundStatus, token));
         }
     } 
 

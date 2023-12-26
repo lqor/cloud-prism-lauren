@@ -10,11 +10,13 @@ public with sharing class ERPCallout {
     public static final String REQUEST_CONTENT_TYPE = 'application/json';
 
     /**
-     * This method is part of the Participant to ERP syncing process. It is called from the sendParticipantToERP 
-     * method in the "ParticipantService" class. It sends the API request to add the participant to the ERP system 
+     * This method is part of the Participant to ERP syncing process. It is
+     * called from the sendParticipantToERP method in the "ParticipantService"
+     * class. It sends the API request to add the participant to the ERP system
      * and returns the JSON response body.
      * 
-     * @param participant  Participant to send to the ERP system
+     * @param participant   Participant to send to the ERP system
+     * @return String       JSON response body
      */
     public static String doERPCalloutForParticipant(String participantJSON) {
 
@@ -36,11 +38,13 @@ public with sharing class ERPCallout {
     }
 
     /**
-     * This method is part of the Participant from ERP import process. It is called from the getParticipantFromERP 
-     * method in the "ParticipantService" class. It sends the API request to get the participant from the ERP system 
-     * and returns the JSON response body.
+     * This method is part of the Participant from ERP import process. It is
+     * called from the getParticipantFromERP method in the "ParticipantService"
+     * class. It sends the API request to get the participant from the ERP
+     * system and returns the JSON response body.
      * 
-     * @param erpId  Erp id to search for in the ERP system
+     * @param erpId         Erp id to search for in the ERP system
+     * @return String       JSON response body
      */
     public static String doERPCalloutForParticipantByErpId(String erpId) {
         if(erpId == null || erpId == '') {
@@ -60,11 +64,12 @@ public with sharing class ERPCallout {
     }
 
     /**
-     * This method is part of the Participant to ERP syncing process. It is called from the sendParticipantToERP 
-     * method in the "ParticipantService" class. It returns the ERP Id if the response was successful or an empty 
-     * string if the expected data is not found.
+     * This method is part of the Participant to ERP syncing process. It is
+     * called from the sendParticipantToERP method in the "ParticipantService"
+     * class.
      * 
-     * @param responseBody  JSON body of response from API call
+     * @param responseBody  JSON body of response from the API call
+     * @return String       ERP Id if successful or an empty string if the expected data is not found
      */
     public static String parseErpId(String responseBody) {
         ErpResponse erpResponse = (ErpResponse) JSON.deserialize(responseBody, ErpResponse.class);
@@ -77,11 +82,13 @@ public with sharing class ERPCallout {
     }
 
     /**
-     * This method is part of the Participant from ERP import process. It is called from the getParticipantFromERP 
-     * method in the "ParticipantService" class. It returns the participant name if the response was successful or 
+     * This method is part of the Participant from ERP import process. It is
+     * called from the getParticipantFromERP method in the "ParticipantService"
+     * class. It returns the participant name if the response was successful or
      * an empty string if the expected data is not found.
      * 
-     * @param responseBody  JSON body of response from API call
+     * @param responseBody  JSON body of response from the API call
+     * @return String       Participant name if successful or an empty string if the expected data is not found
      */
     public static String parseParticipantName(String responseBody) {
         ParticipantResponse participantResponse = (ParticipantResponse) JSON.deserialize(
