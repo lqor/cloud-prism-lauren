@@ -2,13 +2,16 @@
 <ListView xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>All</fullName>
     <columns>NAME</columns>
+    <columns>TrainingCourse__c</columns>
     <columns>Restaurant__c</columns>
-    <columns>RestaurantCommission__c</columns>
     <columns>Status__c</columns>
-    <columns>CompletionDate__c</columns>
-    <columns>TrainingDuration__c</columns>
-    <columns>UniqueId__c</columns>
     <columns>StartDate__c</columns>
+    <columns>EndDate__c</columns>
+    <columns>CompletionDate__c</columns>
+    <columns>TotalPrice__c</columns>
+    <columns>TotalTax__c</columns>
+    <columns>NumberOfParticipants__c</columns>
+    <columns>UniqueId__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

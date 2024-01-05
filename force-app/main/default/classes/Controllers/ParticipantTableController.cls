@@ -44,11 +44,11 @@ public with sharing class ParticipantTableController {
     @AuraEnabled
     public static List<ParticipantWrapper> getParticipantByErpId(Id trainingId, String erpId) {
         if(trainingId == null) {
-            throw new EmptyTrainingIdException('Empty Training Id.Please ensure this component is attached to a Training record page');
+            throw new EmptyTrainingIdException('Empty Training Id. Please ensure this component is attached to a Training record page');
         }
 
         if(String.isblank(erpId) || !erpId.isNumeric()) {
-            throw new EmptyErpIdException('Invalid Erp Id.Please check the Erp Id and try again');
+            throw new EmptyErpIdException('Erp Id must be a valid number. Please check the Erp Id and try again');
         }
 
         ParticipantService service = new ParticipantService();
@@ -67,12 +67,12 @@ public with sharing class ParticipantTableController {
     @AuraEnabled
     public static List<ParticipantWrapper> addNewParticipant(Id trainingId, String serializedParticipant) {
         if(trainingId == null) {
-            throw new EmptyTrainingIdException('Empty Training Id.Please ensure this component is attached to a Training record page');
+            throw new EmptyTrainingIdException('Empty Training Id. Please ensure this component is attached to a Training record page');
         }
 
         Participant__c participant = (Participant__c) JSON.deserialize(serializedParticipant, Participant__c.class);
         if(participant.Contact__c == null) {
-            throw new IncompleteParticipantException('Incomplete Participant.Please select a Contact before saving');
+            throw new IncompleteParticipantException('Incomplete Participant Form. Please select a Contact before saving');
         }
 
         ParticipantService service = new ParticipantService();
@@ -89,7 +89,7 @@ public with sharing class ParticipantTableController {
     @AuraEnabled
     public static Id deleteParticipant(Id participantId) {
         if(participantId == null) {
-            throw new EmptyParticipantIdException('Empty Participant Id.Please try refreshing the page.');
+            throw new EmptyParticipantIdException('Participant could not be found. Please try refreshing the page.');
         }
 
         try {

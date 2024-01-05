@@ -6,7 +6,7 @@ export default class NewParticipantModal extends LightningModal {
     @api trainingId;
 
     objectApiName = 'Participant__c';
-    statusDefault = 'Active';
+    statusDefault = 'In Queue';
 
     closePopup() {
         this.close('Closed');

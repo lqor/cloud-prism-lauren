@@ -50,7 +50,7 @@ export default class SaveTrainingPdf extends LightningElement {
     reloadPage() {
         setTimeout(() => {
             window.location.reload();
-        }, 500);
+        }, 3000);
     }
 
 }

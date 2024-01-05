@@ -4,5 +4,6 @@
     <fields>Name</fields>
     <fields>AverageMealCost__c</fields>
     <fields>CommissionRate__c</fields>
+    <fields>LocationAddress__c</fields>
     <label>Restaurant Compact Layout</label>
 </CompactLayout>

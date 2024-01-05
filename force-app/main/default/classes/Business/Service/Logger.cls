@@ -8,6 +8,7 @@ public with sharing class Logger {
      */
     public void logException(Exception e) {
         ErrorLog__c log = createErrorLog(e);
+
         insert log;
     }
 
@@ -41,7 +42,12 @@ public with sharing class Logger {
      */
     public void logERPCalloutException(Exception e) {
         ErrorLog__c log = createErrorLog(e);
-        // log.Comment__c = 'Participant JSON or ERP Id string was empty. This logs an exception that is part of either a flow or batch. Check if flow submits the correct participant obj.';
+        
+        String commentPartOne = 'Participant JSON or ERP Id string was empty. ';
+        String commentPartTwo = 'This logs an exception that is part of either a flow or batch. ';
+        String commentPartThree = 'Check if flow submits the correct participant obj.';
+        log.Comments__c = commentPartOne + commentPartTwo + commentPartThree;
+
         insert log;
     }
 
@@ -54,6 +60,7 @@ public with sharing class Logger {
      */
     public void logRefundOrderFailed(TrainingRefund__c refund) {
         ErrorLog__c log = createRefundFailureLog(refund);
+
         insert log;
     }
 

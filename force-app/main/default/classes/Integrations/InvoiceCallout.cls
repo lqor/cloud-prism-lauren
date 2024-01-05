@@ -1,6 +1,10 @@
 public with sharing class InvoiceCallout {
 
-    public static final String REQUEST_METHOD_GET = 'GET';
+    public virtual class InvoiceCalloutException extends Exception {}
+    public class NullAuthenticationResponseException extends InvoiceCalloutException {}
+    public class InvalidTokenResponseException extends InvoiceCalloutException {}
+    public class InvalidParticipantOrTrainingException extends InvoiceCalloutException {}
+
     public static final String REQUEST_METHOD_POST = 'POST';
     public static final String REQUEST_CONTENT_TYPE = 'application/json';
     public static final String REQUEST_BASE_URL = 'callout:MockPaymentGateway';
@@ -18,7 +22,7 @@ public with sharing class InvoiceCallout {
     public static String doAuthenticationCalloutForPayment() {
         String requestBodyJSON = serializeAuthRequestBody();
 
-        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_AUTH, requestBodyJSON);
+        HttpRequest request = generateHttpRequest(REQUEST_METHOD_POST, REQUEST_ENDPOINT_AUTH, requestBodyJSON);
         Http http = new Http();
         HttpResponse response = http.send(request);
 
@@ -41,29 +45,41 @@ public with sharing class InvoiceCallout {
     }
 
     /**
-     * This method is part of the Participant payment/refund handling process.
-     * It is invoked from the doInvoiceCalloutForParticipant method of this
-     * class and the doRefundCalloutForParticipant method of the RefundCallout
-     * class. It creates the request body.
+     * This method is part of the Participant payment and refund handling process.
+     * It is invoked from following methods of this class: 
+     * doAuthenticationCalloutForPayment and doInvoiceCalloutForParticipant,
+     * and the following methods of the RefundCallout class:
+     * doRefundCalloutForParticipant, doGetRefundCalloutForParticipantByRefundId,
+     * and doRefundVerificationCalloutForParticipant.
      * 
+     * @param method        Request method type
+     * @param endpoint      Request endpoint
+     * @param body          Request body JSON
      * @return String       Http request body
      */
-    public static HttpRequest generateHttpRequest(String endpoint, String body) {
+    public static HttpRequest generateHttpRequest(String method, String endpoint, String body) {
         HttpRequest request = new HttpRequest();
 
-        request.setMethod(REQUEST_METHOD_POST);
+        request.setMethod(method);
         request.setEndpoint(REQUEST_BASE_URL + endpoint);
-        request.setBody(body);
         request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
 
+        if(method == REQUEST_METHOD_POST) {
+            request.setBody(body);
+        }
+    
         return request;
     }
 
     private static String parseAuthToken(String responseBody) {
+        if(responseBody == null) {
+            throw new NullAuthenticationResponseException('Unable to process authentication: Response body is null.');
+        }
+
         AuthResponseBody authResponse = (AuthResponseBody) JSON.deserialize(responseBody, AuthResponseBody.class);
 
-        if(authResponse.token == null) {
-            return '';
+        if(authResponse == null || authResponse.token == null || authResponse.token == 'null') {
+            throw new InvalidTokenResponseException('Unable to process authentication: Response token is invalid.');
         }
 
         return authResponse.token;
@@ -79,10 +95,14 @@ public with sharing class InvoiceCallout {
      * @return String       JSON response body with successful message
      */
     public static String doInvoiceCalloutForParticipant(Participant__c participant, Training__c training) {
+        if(participant == null || training == null ) {
+            throw new InvalidParticipantOrTrainingException('Unable to initiate invoice request: Participant or training is invalid');
+        }
+
         String parsedToken = doAuthenticationCalloutForPayment();
         String requestBodyJSON = serializeInvoiceRequestBody(training, participant.Id, parsedToken);
 
-        HttpRequest request = generateHttpRequest(REQUEST_ENDPOINT_INVOICES, requestBodyJSON);
+        HttpRequest request = generateHttpRequest(REQUEST_METHOD_POST, REQUEST_ENDPOINT_INVOICES, requestBodyJSON);
         Http http = new Http();
         HttpResponse response = http.send(request);
 

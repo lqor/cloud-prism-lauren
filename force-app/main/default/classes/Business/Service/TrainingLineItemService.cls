@@ -1,9 +1,10 @@
 public with sharing class TrainingLineItemService {
 
     /**
-     * This method is part of the Training product management process. It is invoked from the beforeInsert method 
-     * on the trigger handler class, "TrainingLineItemTriggerHandler." It copies product info to the corresponding 
-     * line item fields.
+     * This method is part of the Training product management process. It is
+     * invoked from the beforeInsert method on the trigger handler class,
+     * "TrainingLineItemTriggerHandler." It copies product info to the
+     * corresponding line item fields.
      * 
      * @param newlist   List of training line items
      * @param oldMap    Old map of training line items, always null
@@ -38,9 +39,10 @@ public with sharing class TrainingLineItemService {
     }
 
     /**
-     * This method is part of the Training product management process. It is invoked from the beforeUpdate method 
-     * on the trigger handler class, "TrainingLineItemTriggerHandler." If the selected product is changed, it updates 
-     * the corresponding line item fields.
+     * This method is part of the Training product management process. It is
+     * invoked from the beforeUpdate method on the trigger handler class,
+     * "TrainingLineItemTriggerHandler." If the selected product is changed, it
+     * updates the corresponding line item fields.
      * 
      * @param newlist   List of training line items
      * @param oldMap    Old map of training line items, never null
@@ -86,9 +88,10 @@ public with sharing class TrainingLineItemService {
     }
 
     /**
-     * This method is part of the Training price calculation process. It is invoked from the afterInsert method 
-     * on the trigger handler class, "TrainingLineItemTriggerHandler." It adds product line item prices and taxes 
-     * and updates the respective fields on trainings.
+     * This method is part of the Training price calculation process. It is
+     * invoked from the afterInsert method on the trigger handler class,
+     * "TrainingLineItemTriggerHandler." It adds product line item prices and
+     * taxes and updates the respective fields on trainings.
      * 
      * @param newlist   List of training line items
      * @param oldMap    Old map of training line items, always null
@@ -118,8 +121,9 @@ public with sharing class TrainingLineItemService {
     }
 
     /**
-     * This method is part of the Training price calculation process. It is invoked from the afterUpdate method 
-     * on the trigger handler class, "TrainingLineItemTriggerHandler." If line item prices and taxes are updated, 
+     * This method is part of the Training price calculation process. It is
+     * invoked from the afterUpdate method on the trigger handler class,
+     * "TrainingLineItemTriggerHandler." If line item prices and taxes are updated, 
      * it recalculates the sums and and updates the respective fields on trainings.
      * 
      * @param newlist   List of training line items

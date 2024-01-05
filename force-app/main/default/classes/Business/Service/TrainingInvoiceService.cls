@@ -1,8 +1,9 @@
 public with sharing class TrainingInvoiceService {
 
     /**
-     * This method is part of the Training invoice management process. It is invoked from the afterInsert method 
-     * on the trigger handler class, "TrainingInvoiceTriggerHandler." It creates invoice line items from the 
+     * This method is part of the Training invoice management process. It is
+     * invoked from the afterInsert method on the trigger handler class,
+     * "TrainingInvoiceTriggerHandler." It creates invoice line items from the
      * corresponding training line items.
      * 
      * @param newlist   List of training invoices

@@ -3,8 +3,6 @@ public with sharing class ParticipantServiceTest {
 
     @TestSetup
     static void setup() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Restaurant__c restaurant = new Restaurant__c();
         restaurant.Name = 'Tam O\'Shanter';
         restaurant.CommissionRate__c = 15;
@@ -31,8 +29,6 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void preventDuplicateParticipantOnTrainings_lazy() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Training__c training = [SELECT Id, Name FROM Training__c LIMIT 1];
         List<Contact> contacts = [SELECT Id, LastName, CanBookForOthers__c FROM Contact];
         Contact contact1 = contacts.get(0);
@@ -55,8 +51,6 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void recalculateRestaurantCommission_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Integer expectedParticipantsSize = 4;
         Training__c training = [SELECT Id, Name FROM Training__c LIMIT 1];
         List<Contact> contacts = [SELECT Id, LastName, CanBookForOthers__c FROM Contact];
@@ -127,6 +121,45 @@ public with sharing class ParticipantServiceTest {
         Assert.areEqual('RegistrationConfirmationQueueable', result.ApexClass.Name);
     }
 
+    @IsTest
+    static void initiateRefundOrder_UnitTest() {
+        Test.setMock(HttpCalloutMock.class, new RefundCalloutHttpCalloutMock());
+
+        Participant__c participant = [SELECT Id, Training__c, Contact__c FROM Participant__c LIMIT 1];
+
+        TrainingInvoice__c invoice = new TrainingInvoice__c();
+        invoice.InvoiceDate__c = System.today();
+        invoice.InvoiceId__c = '657c33e3c01b55ac1cfd6f59';
+        invoice.Status__c = InvoicePostProcessingQueueable.INVOICE_STATUS_CREATED;
+        invoice.Participant__c = participant.Id;
+        invoice.Training__c = participant.Training__c;
+        insert invoice;
+
+        Test.startTest();
+        String invoiceName = new ParticipantService().initiateRefundOrder(participant.Id, 'Billing Error');
+        Test.stopTest();
+
+        Assert.isNotNull(invoiceName);
+
+        List<TrainingRefund__c> refunds = [SELECT Status__c, RefundId__c FROM TrainingRefund__c];
+
+        Assert.isNotNull(refunds);
+        Assert.areEqual(1, refunds.size());
+
+        TrainingRefund__c refund = refunds.get(0);
+        Assert.areEqual(RefundPostProcessingQueueable.REFUND_STATUS_FAILED, refund.Status__c);
+        Assert.isNotNull(refund.RefundId__c);
+
+        List<AsyncApexJob> jobs = [SELECT Id, Status, JobType FROM AsyncApexJob WHERE ApexClass.Name = 'RefundPollingQueueable'];
+
+        Assert.isNotNull(jobs);
+        Assert.areEqual(1, jobs.size());
+
+        AsyncApexJob job = jobs.get(0);
+        Assert.areEqual('Completed', job.Status);
+        Assert.areEqual('Queueable', job.JobType);
+    }
+
     // @IsTest
     // static void updateParticipantPaymentLink_UnitTest() {
     //     Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
@@ -146,8 +179,6 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryTrainingsWithParticipantsById_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Integer expectedParticipantsSize = 3;
         Training__c training = [SELECT Id, Name FROM Training__c];
 
@@ -173,8 +204,6 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryContactsOfParticipantsById_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Training__c training = [SELECT Id, Name FROM Training__c];
 
         Contact newContact = new Contact(LastName = 'New-Student', CanBookForOthers__c = true, Email = 'new@mail.com');
@@ -197,8 +226,6 @@ public with sharing class ParticipantServiceTest {
 
     @IsTest
     static void queryTrainingsForNewParticipantsByParticipantIds_UnitTest() {
-        Test.setMock(HttpCalloutMock.class, new PaymentLinkCalloutHttpCalloutMock());
-
         Integer expectedParticipantsSize = 1;
         Training__c training = [SELECT Id, Name FROM Training__c];
 

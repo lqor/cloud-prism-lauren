@@ -1,18 +1,23 @@
 @RestResource(urlMapping='/invoices/*') 
 global with sharing class InvoiceRestService {
 
+    public virtual class InvoiceRestServiceException extends Exception {}
+    public class InvoiceProcessingErrorException extends InvoiceRestServiceException {}
+
+
+
     /**
      * Part of the Participant payment handling process, this method is invoked
-     * via an HTTP POST request. It receives invoice data as a JSON payload
-     * from the payment server and submits the queueable Apex job,
+     * via an HTTP POST request. It receives invoice data as a JSON payload from
+     * the payment server and submits the queueable Apex job,
      * "InvoicePostProcessingQueueable."
      */
     @HttpPost
     global static void doStartInvoiceProcessing() {
-        try {
-            String requestBody = RestContext.request.requestBody.toString();
-            InvoiceRequestBody parsedInvoice = parseInvoice(requestBody);
+        String requestBody = RestContext.request.requestBody.toString();
+        InvoiceRequestBody parsedInvoice = parseInvoice(requestBody);
 
+        try {
             Id invJobId = System.enqueueJob(new InvoicePostProcessingQueueable(parsedInvoice));
         } catch(Exception e) {
             Logger logger = new Logger();
@@ -22,14 +27,11 @@ global with sharing class InvoiceRestService {
 
     @TestVisible 
     private static InvoiceRequestBody parseInvoice(String requestBody) {
-        InvoiceRequestBody invoiceRequest = new InvoiceRequestBody();
-
-        try {
-            invoiceRequest = (InvoiceRequestBody) JSON.deserialize(requestBody, InvoiceRequestBody.class);
-        } catch(Exception e) {
-            Logger logger = new Logger();
-            logger.logException(e);
+        if(requestBody == null || requestBody == '') {
+            throw new InvoiceProcessingErrorException('Unable to process invoice: Request body is null');
         }
+
+        InvoiceRequestBody invoiceRequest = (InvoiceRequestBody) JSON.deserialize(requestBody, InvoiceRequestBody.class);
 
         return invoiceRequest;
     }

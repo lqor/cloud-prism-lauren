@@ -161,12 +161,14 @@
     </nameField>
     <pluralLabel>Error Log</pluralLabel>
     <searchLayouts>
+        <searchResultsAdditionalFields>CREATED_DATE</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>ExceptionType__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>ExceptionMessage__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>ClassName__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>MethodName__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>LineNumber__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>ExceptionMessage__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>ExceptionType__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Important__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Comments__c</searchResultsAdditionalFields>
     </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <startsWith>Vowel</startsWith>

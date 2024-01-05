@@ -1,12 +1,12 @@
 public with sharing class RefundCallout {
 
     public virtual class RefundCalloutException extends Exception {}
-    public class EmptyRefundException extends RefundCalloutException {}
-    public class EmptyRefundIdOrTokenException extends RefundCalloutException {}
+    public class NullTrainingRefundObjectException extends RefundCalloutException {}
+    public class NullRefundResponseException extends RefundCalloutException {}
+    public class InvalidRefundResponseException extends RefundCalloutException {}
+    public class InvalidRefundIdOrTokenException extends RefundCalloutException {}
 
     public static final String REQUEST_METHOD_GET = 'GET';
-    public static final String REQUEST_CONTENT_TYPE = 'application/json';
-    public static final String REQUEST_BASE_URL = 'callout:MockPaymentGateway';
     public static final String REQUEST_ENDPOINT_REFUNDS = '/refunds/';
     public static final String REQUEST_ENDPOINT_VERIFICATIONS = '/refund_verifications/';
     public static final String REQUEST_TOKEN_QUERY_PARAM = '/?token=';
@@ -16,19 +16,22 @@ public with sharing class RefundCallout {
      * invoked from the initiateRefundOrder method on the "ParticipantService"
      * class. It sends the API request for generating the refund.
      * 
-     * @param refund        Refund details to send in the refund order
-     * @return String       Refund id as confirmation the order was received
+     * @param refund                Refund details to send in the refund order request
+     * @return RefundResponseBody   Parsed refund response body object including token
      */
-    public static RefundResponseBody doRefundCalloutForParticipant(TrainingRefund__c refund) {
+    public static RefundResponseBody doRefundCalloutForParticipant(TrainingRefund__c refund) {     
         if(refund == null) {
-            throw new EmptyRefundException('Training Refund is null');
+            throw new NullTrainingRefundObjectException('Unable to initiate refund request: Training Refund object is null.');
         }
 
         String parsedToken = InvoiceCallout.doAuthenticationCalloutForPayment();
-
         String requestBodyJSON = serializeRefundRequestBody(refund, parsedToken);
 
-        HttpRequest request = InvoiceCallout.generateHttpRequest(REQUEST_ENDPOINT_REFUNDS, requestBodyJSON);
+        HttpRequest request = InvoiceCallout.generateHttpRequest(
+            InvoiceCallout.REQUEST_METHOD_POST, 
+            REQUEST_ENDPOINT_REFUNDS, 
+            requestBodyJSON
+        );
         Http http = new Http();
         HttpResponse response = http.send(request);
 
@@ -40,7 +43,7 @@ public with sharing class RefundCallout {
         RefundRequestBody requestBodyToSerialize = new RefundRequestBody();
 
         requestBodyToSerialize.amount = refund.Amount__c;
-        requestBodyToSerialize.invoice_id = refund.InvoiceId__c;
+        requestBodyToSerialize.invoice_id = refund.TrainingInvoice__r.InvoiceId__c;
         requestBodyToSerialize.token = token;
         requestBodyToSerialize.participant_id = refund.Participant__c;
         requestBodyToSerialize.reason = refund.Reason__c;
@@ -49,8 +52,16 @@ public with sharing class RefundCallout {
     }
 
     private static RefundResponseBody parseRefundResponse(String responseBody, String token) {
+        if(responseBody == null) {
+            throw new NullRefundResponseException('Unable to process refund request: Response body is null.');
+        }
+
         RefundResponseBody refundResponse = (RefundResponseBody) JSON.deserialize(responseBody, RefundResponseBody.class);
 
+        if(refundResponse == null || refundResponse.refund_id == null || refundResponse.refund_id == '') {
+            throw new InvalidRefundResponseException('Unable to process refund: Response refund id is invalid.');
+        } 
+        
         refundResponse.token = token;
 
         return refundResponse;
@@ -58,9 +69,8 @@ public with sharing class RefundCallout {
 
     /**
      * This method is part of the Participant refund handling process. It is
-     * invoked from the execute method on the queueable class, 
-     * "RefundPollingQueueable." It sends the API request to check if the
-     * refund has been processed.
+     * invoked from the execute method on the "RefundPollingQueueable" queueable
+     * class. It sends the API request to check if the refund has been processed.
      * 
      * @param refundId      Id of refund order to check on
      * @param token         Access token from the payment server
@@ -68,17 +78,12 @@ public with sharing class RefundCallout {
      */
     public static String doGetRefundCalloutForParticipantByRefundId(String refundId, String token) {
         if(refundId == null || refundId == '' || token == null || token == '') {
-            throw new EmptyRefundIdOrTokenException('Refund ID or Token is empty');
+            throw new InvalidRefundIdOrTokenException('Unable to initiate refund status check: Refund id or token is invalid');
         }
 
-        String tokenParameter = REQUEST_TOKEN_QUERY_PARAM + token;
+        String endpoint = REQUEST_ENDPOINT_REFUNDS + refundId + REQUEST_TOKEN_QUERY_PARAM + token;
 
-        HttpRequest request = new HttpRequest();
-
-        request.setMethod(REQUEST_METHOD_GET);
-        request.setEndpoint(REQUEST_BASE_URL + REQUEST_ENDPOINT_REFUNDS + refundId + tokenParameter);
-        request.setHeader('Content-Type', REQUEST_CONTENT_TYPE);
-
+        HttpRequest request = InvoiceCallout.generateHttpRequest(REQUEST_METHOD_GET, endpoint, '');
         Http http = new Http();
         HttpResponse response = http.send(request);
 
@@ -86,9 +91,13 @@ public with sharing class RefundCallout {
     }
 
     private static String parseRefundStatus(String responseBody) {
+        if(responseBody == null) {
+            throw new NullRefundResponseException('Unable to process refund status check: Refund callout response is null.');
+        }
+
         RefundResponseBody refundResponse = (RefundResponseBody) JSON.deserialize(responseBody, RefundResponseBody.class);
 
-        if(refundResponse.status == null || refundResponse.status == 'initiated') {
+        if(refundResponse.status == null) {
             refundResponse.status = '';
         }
 
@@ -97,8 +106,8 @@ public with sharing class RefundCallout {
 
     /**
      * This method is part of the Participant refund handling process. It is
-     * invoked from the execute method on the "RefundPollingQueueable" queueable
-     * class. It sends the API request for the refund verification.
+     * invoked from the execute method on the "RefundPostProcessingQueueable"
+     * queueable class. It sends the API request for the refund verification.
      * 
      * @param refundId      Id of refund order to check on
      * @param token         Access token from the payment server
@@ -106,12 +115,16 @@ public with sharing class RefundCallout {
      */
     public static String doRefundVerificationCalloutForParticipant(String refundId, String token) {
         if(refundId == null || refundId == '' || token == null || token == '') {
-            throw new EmptyRefundIdOrTokenException('Refund ID or Token is empty');
+            throw new InvalidRefundIdOrTokenException('Unable to initiate refund verification: Refund id or token is invalid');
         }
 
         String requestBodyJSON = serializeVerificationRequestBody(refundId, token);
 
-        HttpRequest request = InvoiceCallout.generateHttpRequest(REQUEST_ENDPOINT_VERIFICATIONS, requestBodyJSON);
+        HttpRequest request = InvoiceCallout.generateHttpRequest(
+            InvoiceCallout.REQUEST_METHOD_POST, 
+            REQUEST_ENDPOINT_VERIFICATIONS, 
+            requestBodyJSON
+        );
         Http http = new Http();
         HttpResponse response = http.send(request);
 

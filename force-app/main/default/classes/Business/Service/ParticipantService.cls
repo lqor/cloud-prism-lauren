@@ -1,9 +1,14 @@
 public with sharing class ParticipantService {
 
+    public virtual class ParticipantServiceException extends Exception {}
+    public class RefundCreationErrorException extends ParticipantServiceException {}
+
     public static final String PARTICIPANT_STATUS_ACTIVE = 'Active';
     public static final String PARTICIPANT_STATUS_IN_QUEUE = 'In Queue';
     public static final String PARTICIPANT_STATUS_PARTICIPATED = 'Participated';
     public static final String ERROR_MESSAGE_DUPLICATE = 'This duplicate participant cannot be booked for the training';
+    public static final String REFUND_STATUS_PENDING = 'Pending';
+    public static final String REFUND_RESPONSE_STATUS_INITIATED = 'Initiated';
 
     /**
      * This method is part of the Participant organization process. It is
@@ -124,38 +129,39 @@ public with sharing class ParticipantService {
      * 
      * @param participantId Id of the participant requesting the refund
      * @param reason        Reason for requesting the refund
-     * @return String       Refund id as confirmation the order was received
+     * @return String       Name of the invoice being refunded
      */
     public String initiateRefundOrder(Id participantId, String reason) {
-        TrainingRefund__c refund = new TrainingRefund__c();
         TrainingInvoice__c invoice = TrainingInvoiceQueries.queryInvoiceByParticipantId(participantId);
-        RefundCallout.RefundResponseBody refundResponse = new RefundCallout.RefundResponseBody();
-        String refundId;
+        TrainingRefund__c refund = createTrainingRefundForParticipant(invoice, reason);
+        RefundCallout.RefundResponseBody refundResponse = RefundCallout.doRefundCalloutForParticipant(refund);
 
+        handleSucccessfulRefundCallout(refund, refundResponse);
+
+        Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundResponse), 1);
+
+        return invoice.Name;
+    }
+ 
+    private TrainingRefund__c createTrainingRefundForParticipant(TrainingInvoice__c invoice, String reason) {
+        TrainingRefund__c refund = new TrainingRefund__c();
+
+        refund.TrainingInvoice__r = new TrainingInvoice__c(InvoiceId__c = invoice.InvoiceId__c);
         refund.Amount__c = invoice.GrandTotal__c;
-        refund.InvoiceId__c = invoice.InvoiceId__c;
         refund.Participant__c = invoice.Participant__c;
         refund.Reason__c = reason;
         refund.RefundDate__c = System.today();
 
-        try {
-            refundResponse = RefundCallout.doRefundCalloutForParticipant(refund);
-            refundId = refundResponse.refund_id;
-        } catch(Exception e) {
-            Logger logger = new Logger();
-            logger.logException(e);
-        }
+        return refund;
+    }
 
-        if(refundId != null) {
-            refund.Status__c = 'Pending';
-            refund.RefundId__c = refundId;
+    private void handleSucccessfulRefundCallout(TrainingRefund__c refund, RefundCallout.RefundResponseBody refundResponse) {
+        if(refundResponse.status == ParticipantService.REFUND_RESPONSE_STATUS_INITIATED) {
+            refund.Status__c = REFUND_STATUS_PENDING;
+            refund.RefundId__c = refundResponse.refund_id;
 
             insert refund;
-
-            Id refundJobId = System.enqueueJob(new RefundPollingQueueable(refundResponse), 1);
         }
-
-        return refundId;
     }
 
     /**

@@ -162,14 +162,15 @@
     </nameField>
     <pluralLabel>Trainings</pluralLabel>
     <searchLayouts>
+        <searchResultsAdditionalFields>TrainingCourse__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Restaurant__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Status__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>StartDate__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>EndDate__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>CompletionDate__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>Restaurant__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>RestaurantCommission__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>TrainingDuration__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>UniqueId__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>TotalPrice__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>TotalTax__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>NumberOfParticipants__c</searchResultsAdditionalFields>
     </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>

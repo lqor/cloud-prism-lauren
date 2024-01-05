@@ -2,12 +2,14 @@
 <ListView xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>All</fullName>
     <columns>NAME</columns>
+    <columns>CREATED_DATE</columns>
+    <columns>ExceptionType__c</columns>
+    <columns>ExceptionMessage__c</columns>
     <columns>ClassName__c</columns>
     <columns>MethodName__c</columns>
     <columns>LineNumber__c</columns>
-    <columns>ExceptionType__c</columns>
-    <columns>ExceptionMessage__c</columns>
     <columns>Important__c</columns>
+    <columns>Comments__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

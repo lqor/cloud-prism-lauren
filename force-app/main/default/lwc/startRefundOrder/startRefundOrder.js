@@ -23,7 +23,6 @@ export default class StartRefundOrder extends LightningElement {
 
     handleChange(event) {
         this.reason = event.detail.value;
-        console.log('this.reason: ' + this.reason);
     }
 
     handleCancel(event) {
@@ -37,18 +36,20 @@ export default class StartRefundOrder extends LightningElement {
     submitRefundOrder() {
         submitRefundForParticipant({ participantId: this.recordId, reason: this.reason })
             .then(result => {
-                console.log('refund done:' + result);
-
                 this.closeAction();
-                this.showToast('Success', 'Refund order ' + result + ' was submitted.', 'success');
-                this.reloadPage();
+                this.showToast('Success', 'Training Refund for Invoice "' + result + '" was submitted.', 'success');
+                // this.reloadPage();
             })
             .catch(error => {
-                console.log('refund issue: ' + error);
-
                 this.closeAction();
-                this.showToast('Error', 'Error occurred while trying to submit refund.', 'error');
+                this.handleErrorMessage(error)
             });
+    }
+
+    handleErrorMessage(error) {
+        const errorBody = error.body;
+
+        this.showToast('Error', errorBody.message, 'error');
     }
 
     closeAction() {
@@ -68,7 +69,7 @@ export default class StartRefundOrder extends LightningElement {
     reloadPage() {
         setTimeout(() => {
             window.location.reload();
-        }, 500);
+        }, 3000);
     }
 
 }

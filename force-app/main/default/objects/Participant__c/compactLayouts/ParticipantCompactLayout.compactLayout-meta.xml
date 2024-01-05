@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>ParticipantCompactLayout</fullName>
-    <fields>Contact__c</fields>
     <fields>Name</fields>
+    <fields>Contact__c</fields>
     <fields>Training__c</fields>
+    <fields>ErpId__c</fields>
     <fields>Status__c</fields>
+    <fields>GPA__c</fields>
+    <fields>Passed__c</fields>
     <label>Participant Compact Layout</label>
 </CompactLayout>

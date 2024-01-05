@@ -156,7 +156,7 @@
     <label>Participant</label>
     <nameField>
         <displayFormat>PN-{0000}</displayFormat>
-        <label>Participant Name</label>
+        <label>Participant Number</label>
         <trackHistory>false</trackHistory>
         <type>AutoNumber</type>
     </nameField>
@@ -164,7 +164,9 @@
     <searchLayouts>
         <searchResultsAdditionalFields>Contact__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Training__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>ErpId__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Status__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>PaymentLink__c</searchResultsAdditionalFields>
     </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>

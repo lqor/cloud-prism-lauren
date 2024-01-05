@@ -14,14 +14,15 @@ public with sharing class InvoicePostProcessingQueueable implements Queueable {
 
     /**
      * This method is part of the Participant payment handling process and
-     * contains the invoice processing logic. It is invoked from the
-     * doStartInvoiceProcessing method on the REST resource class,
-     * "InvoiceRestService." It receives the parsed invoice data and creates
-     * or updates invoices and related participant records.
+     * contains the invoice processing logic. It is invoked from the method,
+     * doStartInvoiceProcessing, on the "InvoiceRestService" REST resource
+     * class. It receives the parsed invoice data and creates or updates
+     * invoices and related participant records.
      */
     public void execute(QueueableContext context) {
         TrainingInvoice__c invoice = new TrainingInvoice__c();
         Participant__c participant = new Participant__c();
+        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
 
         if(parsedInvoice.status == INVOICE_STATUS_CREATED) {
             Id participantId = parsedInvoice.participant_id;
@@ -33,12 +34,7 @@ public with sharing class InvoicePostProcessingQueueable implements Queueable {
             participant = training.Participants__r[0];
             participant.PaymentLink__c = parsedInvoice.payment_link;
 
-            List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
             emails.add(EmailService.createParticipantPaymentEmail(training, participant));
-
-            if(!emails.isEmpty()) {
-                Messaging.sendEmail(emails);
-            }
         } else if(parsedInvoice.status == INVOICE_STATUS_PAID) {
             invoice = updateInvoice(parsedInvoice);
 
@@ -48,8 +44,11 @@ public with sharing class InvoicePostProcessingQueueable implements Queueable {
 
         try {
             upsert invoice InvoiceId__c;
-
             update participant;
+
+            if(!emails.isEmpty()) {
+                Messaging.sendEmail(emails);
+            }
         } catch(Exception e) {
             Logger logger = new Logger();
             logger.logException(e);

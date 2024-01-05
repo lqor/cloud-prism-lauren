@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>TrainingInvoiceCompactLayout</fullName>
+    <fields>Name</fields>
+    <fields>Participant__c</fields>
+    <fields>Training__c</fields>
+    <fields>InvoiceDate__c</fields>
+    <fields>Status__c</fields>
+    <fields>GrandTotal__c</fields>
+    <fields>Tax__c</fields>
+    <fields>PaymentDate__c</fields>
+    <fields>PaymentLink__c</fields>
+    <label>Training Invoice Compact Layout</label>
+</CompactLayout>

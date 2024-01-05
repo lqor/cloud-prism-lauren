@@ -27,7 +27,6 @@ public class InvoiceCalloutTest {
         participant.Status__c = ParticipantService.PARTICIPANT_STATUS_IN_QUEUE;
         participant.Training__c = training.Id;
         insert participant;
-
     }
 
     @IsTest
@@ -38,7 +37,7 @@ public class InvoiceCalloutTest {
         String responseToken = InvoiceCallout.doAuthenticationCalloutForPayment();
         Test.stopTest();
 
-        Assert.areEqual(InvoiceCalloutHttpCalloutMock.AUTH_RESPONSE, responseToken);
+        Assert.areEqual(InvoiceCalloutHttpCalloutMock.AUTH_RESPONSE_TOKEN, responseToken);
     }
 
     @IsTest
@@ -52,7 +51,7 @@ public class InvoiceCalloutTest {
         String responseMessage = InvoiceCallout.doInvoiceCalloutForParticipant(participant, training);
         Test.stopTest();
 
-        Assert.isTrue(responseMessage.contains(InvoiceCalloutHttpCalloutMock.INVOICE_RESPONSE));
+        Assert.isTrue(responseMessage.contains(InvoiceCalloutHttpCalloutMock.INVOICE_RESPONSE_MESSAGE));
         Assert.isTrue(responseMessage.contains('message'));
     }
 

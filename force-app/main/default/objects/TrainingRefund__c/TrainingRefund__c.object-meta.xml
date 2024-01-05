@@ -162,14 +162,14 @@
     </nameField>
     <pluralLabel>Training Refunds</pluralLabel>
     <searchLayouts>
-        <searchResultsAdditionalFields>InvoiceId__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>RefundId__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Participant__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>TrainingInvoice__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Amount__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>RefundDate__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Status__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>RefundId__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>VerificationId__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Reason__c</searchResultsAdditionalFields>
-        <searchResultsAdditionalFields>Comments__c</searchResultsAdditionalFields>
     </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
